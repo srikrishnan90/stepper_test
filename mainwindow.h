@@ -7,6 +7,7 @@
 #include <QDebug>
 #include <mcp3004.h>
 #include <wiringPiSPI.h>
+#include <softPwm.h>
 
 namespace Ui {
 class MainWindow;
@@ -26,6 +27,8 @@ private slots:
     void on_pushButton_2_clicked();
 
     void on_pushButton_3_clicked();
+
+    void readadc();
 
 private:
     Ui::MainWindow *ui;
