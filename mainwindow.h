@@ -9,6 +9,7 @@
 #include <wiringPiSPI.h>
 #include <softPwm.h>
 
+
 namespace Ui {
 class MainWindow;
 }
@@ -28,8 +29,9 @@ private slots:
 
     void on_pushButton_3_clicked();
 
-    void readadc();
+    int readadc();
 
+    void makePlot();
 private:
     Ui::MainWindow *ui;
 };

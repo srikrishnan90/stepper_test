@@ -13,6 +13,10 @@
 #define BASE 100
 #define SPI_CHAN 0
 
+unsigned int read[20000];
+unsigned int filtdata[20000];
+
+
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
@@ -83,23 +87,23 @@ void MainWindow::on_pushButton_3_clicked()
     on_pushButton_clicked();
 if(ui->radioButton_2->isChecked())
     softPwmWrite(LED,10);
-if(ui->radioButton_3->isChecked())
+else if(ui->radioButton_3->isChecked())
     softPwmWrite(LED,20);
-if(ui->radioButton_4->isChecked())
+else if(ui->radioButton_4->isChecked())
     softPwmWrite(LED,30);
-if(ui->radioButton_5->isChecked())
+else if(ui->radioButton_5->isChecked())
     softPwmWrite(LED,40);
-if(ui->radioButton_6->isChecked())
+else if(ui->radioButton_6->isChecked())
     softPwmWrite(LED,50);
-if(ui->radioButton_7->isChecked())
+else if(ui->radioButton_7->isChecked())
     softPwmWrite(LED,60);
-if(ui->radioButton_8->isChecked())
+else if(ui->radioButton_8->isChecked())
     softPwmWrite(LED,70);
-if(ui->radioButton_9->isChecked())
+else if(ui->radioButton_9->isChecked())
     softPwmWrite(LED,80);
-if(ui->radioButton_10->isChecked())
+else if(ui->radioButton_10->isChecked())
     softPwmWrite(LED,90);
-if(ui->radioButton_11->isChecked())
+else if(ui->radioButton_11->isChecked())
     softPwmWrite(LED,100);
 
     digitalWrite(en,LOW);
@@ -110,17 +114,53 @@ if(ui->radioButton_11->isChecked())
             QThread::usleep(15);
             digitalWrite(steps, LOW);
             //QThread::usleep(20);
-            readadc();
+            read[i]=readadc();
+            qDebug()<<read[i];
+        }
+    for (int i=5;i<20000;i++)
+    {
+           filtdata[i]=(read[i]+read[i-1]+read[i-2]+read[i-3]+read[i-4]+read[i-5])/5;
         }
      digitalWrite(en,HIGH);
      softPwmWrite(LED,0);
+     makePlot();
 
 }
 
-void MainWindow::readadc()
+int MainWindow::readadc()
 {
     unsigned char data[3]={0x06,0x00,0x00};
     wiringPiSPIDataRW(0,data,3);
     int adcValue=(data[1]&15)<<8|data[2];
-    qDebug()<<adcValue;
+    return adcValue;
+    //qDebug()<<adcValue;
+}
+
+
+void MainWindow::makePlot()
+{
+    // generate some data:
+    QVector<double> x(20000), y(20000), y1(20000);// initialize with entries 0..100
+    for (int i=0; i<20000; ++i)
+    {
+//      x[i] = i/50.0 - 1; // x goes from -1 to 1
+//      y[i] = x[i]*x[i]; // let's plot a quadratic function
+        x[i]=i;
+        y[i]=read[i];
+        y1[i]=filtdata[i];
+    }
+    // create graph and assign data to it:
+    ui->customPlot->addGraph();
+    ui->customPlot->graph(0)->setData(x,y);
+    ui->customPlot->addGraph();
+    ui->customPlot->graph(1)->setPen(QPen(Qt::red));
+    ui->customPlot->graph(1)->setData(x,y1);
+    // give the axes some labels:
+    ui->customPlot->xAxis->setLabel("x");
+    ui->customPlot->yAxis->setLabel("y");
+    // set axes ranges, so we see all data:
+    ui->customPlot->xAxis->setRange(3000, 7000);
+    ui->customPlot->yAxis->setRange(0, 100);
+    ui->customPlot->replot();
+
 }
