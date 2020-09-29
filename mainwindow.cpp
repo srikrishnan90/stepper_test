@@ -38,6 +38,7 @@ MainWindow::MainWindow(QWidget *parent) :
      digitalWrite(BARCODE_GND,LOW);
      pinMode (LED, PWM_OUTPUT);
      pwmWrite (LED, 0);
+     ui->radioButton_7->setChecked(true);
 
 }
 
@@ -76,7 +77,7 @@ void MainWindow::on_pushButton_2_clicked()
 
     digitalWrite(en,LOW);
     digitalWrite(dir,LOW);
-    for (int i=0;i<10000;i++)
+    for (int i=0;i<11000;i++)
     {
             digitalWrite(steps, HIGH);
             QThread::usleep(15);
@@ -117,7 +118,7 @@ else if(ui->radioButton_11->isChecked())
 
     digitalWrite(en,LOW);
     digitalWrite(dir,LOW);
-    for (int i=0;i<10000;i++)
+    for (int i=0;i<11000;i++)
     {
             digitalWrite(steps, HIGH);
 //            if(i>1500 && i<4000)
@@ -184,7 +185,7 @@ void MainWindow::makePlot()
     ui->customPlot->xAxis->setLabel("x");
     ui->customPlot->yAxis->setLabel("y");
     // set axes ranges, so we see all data:
-    ui->customPlot->xAxis->setRange(4500, 6500);
+    ui->customPlot->xAxis->setRange(0, 10000);
     ui->customPlot->yAxis->setRange(0, 1500);
     ui->customPlot->replot();
 
