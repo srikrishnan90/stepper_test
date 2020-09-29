@@ -10,6 +10,8 @@
 #define init 0
 #define range 100
 
+#define BARCODE_GND 21
+
 #define BASE 100
 #define SPI_CHAN 0
 
@@ -24,12 +26,18 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->setupUi(this);
     wiringPiSetup () ;
     mcp3004Setup (BASE, SPI_CHAN) ;
-    softPwmCreate(LED, init,range);
+    //softPwmCreate(LED, init,range);
      pinMode (en, OUTPUT) ;
      pinMode (dir, OUTPUT) ;
      pinMode (steps, OUTPUT) ;
      pinMode (hm_sen, INPUT) ;
-     softPwmWrite(LED,0);
+     pinMode (BARCODE_GND, OUTPUT) ;
+     //softPwmWrite(LED,0);
+     digitalWrite(en,HIGH);
+
+     digitalWrite(BARCODE_GND,LOW);
+     pinMode (LED, PWM_OUTPUT);
+     pwmWrite (LED, 0);
 
 }
 
@@ -43,7 +51,7 @@ void MainWindow::on_pushButton_clicked()
     //Homing
     digitalWrite(en,LOW);
     digitalWrite(dir,HIGH);
-    for (int i=0;i<25000;i++)
+    for (int i=0;i<15000;i++)
     {
         if(digitalRead(hm_sen)==1)
         {
@@ -68,7 +76,7 @@ void MainWindow::on_pushButton_2_clicked()
 
     digitalWrite(en,LOW);
     digitalWrite(dir,LOW);
-    for (int i=0;i<20000;i++)
+    for (int i=0;i<10000;i++)
     {
             digitalWrite(steps, HIGH);
             QThread::usleep(15);
@@ -85,44 +93,61 @@ void MainWindow::on_pushButton_3_clicked()
 
     //reading
     on_pushButton_clicked();
+    QThread::sleep(3);
 if(ui->radioButton_2->isChecked())
-    softPwmWrite(LED,10);
+    pwmWrite (LED, 50);
 else if(ui->radioButton_3->isChecked())
-    softPwmWrite(LED,20);
+    pwmWrite (LED, 100);
 else if(ui->radioButton_4->isChecked())
-    softPwmWrite(LED,30);
+    pwmWrite (LED, 150);
 else if(ui->radioButton_5->isChecked())
-    softPwmWrite(LED,40);
+    pwmWrite (LED, 200);
 else if(ui->radioButton_6->isChecked())
-    softPwmWrite(LED,50);
+    pwmWrite (LED, 250);
 else if(ui->radioButton_7->isChecked())
-    softPwmWrite(LED,60);
+    pwmWrite (LED, 300);
 else if(ui->radioButton_8->isChecked())
-    softPwmWrite(LED,70);
+    pwmWrite (LED, 350);
 else if(ui->radioButton_9->isChecked())
-    softPwmWrite(LED,80);
+    pwmWrite (LED, 400);
 else if(ui->radioButton_10->isChecked())
-    softPwmWrite(LED,90);
+    pwmWrite (LED, 450);
 else if(ui->radioButton_11->isChecked())
-    softPwmWrite(LED,100);
+    pwmWrite (LED, 500);
 
     digitalWrite(en,LOW);
     digitalWrite(dir,LOW);
-    for (int i=0;i<20000;i++)
+    for (int i=0;i<10000;i++)
     {
             digitalWrite(steps, HIGH);
-            QThread::usleep(15);
+//            if(i>1500 && i<4000)
+//                QThread::usleep(1000);
+//            else
+                QThread::usleep(50);
             digitalWrite(steps, LOW);
-            //QThread::usleep(20);
+//            if(i>1500 && i<4000)
+//                QThread::usleep(1000);
+//            else
+                QThread::usleep(50);
             read[i]=readadc();
             qDebug()<<read[i];
         }
-    for (int i=5;i<20000;i++)
+//    for (int i=5;i<10000;i++)
+//    {
+//           filtdata[i]=(read[i]+read[i-1]+read[i-2]+read[i-3]+read[i-4]+read[i-5])/5;
+//        }
+    for (int i=0;i<9995;i=i+5)
     {
-           filtdata[i]=(read[i]+read[i-1]+read[i-2]+read[i-3]+read[i-4]+read[i-5])/5;
+           filtdata[i]=(read[i]+read[i+1]+read[i+2]+read[i+3]+read[i+4]+read[i+5])/5;
+           filtdata[i+1]=filtdata[i];
+           filtdata[i+2]=filtdata[i];
+           filtdata[i+3]=filtdata[i];
+           filtdata[i+4]=filtdata[i];
+           filtdata[i+5]=filtdata[i];
+
         }
      digitalWrite(en,HIGH);
-     softPwmWrite(LED,0);
+     pwmWrite (LED, 0);
      makePlot();
 
 }
@@ -141,7 +166,7 @@ void MainWindow::makePlot()
 {
     // generate some data:
     QVector<double> x(20000), y(20000), y1(20000);// initialize with entries 0..100
-    for (int i=0; i<20000; ++i)
+    for (int i=0; i<10000; ++i)
     {
 //      x[i] = i/50.0 - 1; // x goes from -1 to 1
 //      y[i] = x[i]*x[i]; // let's plot a quadratic function
@@ -159,8 +184,8 @@ void MainWindow::makePlot()
     ui->customPlot->xAxis->setLabel("x");
     ui->customPlot->yAxis->setLabel("y");
     // set axes ranges, so we see all data:
-    ui->customPlot->xAxis->setRange(3000, 7000);
-    ui->customPlot->yAxis->setRange(0, 100);
+    ui->customPlot->xAxis->setRange(4500, 6500);
+    ui->customPlot->yAxis->setRange(0, 1500);
     ui->customPlot->replot();
 
 }
