@@ -15,8 +15,8 @@
 #define BASE 100
 #define SPI_CHAN 0
 
-unsigned int read[20000];
-unsigned int filtdata[20000];
+static int read[20000];
+static int filtdata[20000];
 
 
 MainWindow::MainWindow(QWidget *parent) :
@@ -113,7 +113,7 @@ else if(ui->radioButton_9->isChecked())
     pwmWrite (LED, 400);
 else if(ui->radioButton_10->isChecked())
     pwmWrite (LED, 450);
-else if(ui->radioButton_11->isChecked())
+else
     pwmWrite (LED, 500);
 
     digitalWrite(en,LOW);
@@ -130,21 +130,26 @@ else if(ui->radioButton_11->isChecked())
 //                QThread::usleep(1000);
 //            else
                 QThread::usleep(30);
-            read[i]=readadc();
+//                if(i%50==0)
+//                    read[i]=readadc();
+//                else {
+//                    read[i]=read[i-1];
+//                }
+                read[i]=readadc();
             qDebug()<<read[i];
         }
 //    for (int i=5;i<10000;i++)
 //    {
 //           filtdata[i]=(read[i]+read[i-1]+read[i-2]+read[i-3]+read[i-4]+read[i-5])/5;
 //        }
-    for (int i=0;i<11995;i=i+5)
+    for (int i=0;i<12000;i++)
     {
-           filtdata[i]=(read[i]+read[i+1]+read[i+2]+read[i+3]+read[i+4]+read[i+5])/5;
-           filtdata[i+1]=filtdata[i];
-           filtdata[i+2]=filtdata[i];
-           filtdata[i+3]=filtdata[i];
-           filtdata[i+4]=filtdata[i];
-           filtdata[i+5]=filtdata[i];
+
+            for(int t=0;t<=50;t++)
+            {
+                filtdata[i]+=read[i+t];
+            }
+            filtdata[i]=filtdata[i]/50;
 
         }
      digitalWrite(en,HIGH);
@@ -178,6 +183,7 @@ void MainWindow::makePlot()
     // create graph and assign data to it:
     ui->customPlot->addGraph();
     ui->customPlot->graph(0)->setData(x,y);
+    ui->customPlot->graph(0)->setVisible(false);
     ui->customPlot->addGraph();
     ui->customPlot->graph(1)->setPen(QPen(Qt::red));
     ui->customPlot->graph(1)->setData(x,y1);
