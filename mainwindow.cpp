@@ -77,7 +77,7 @@ void MainWindow::on_pushButton_2_clicked()
 
     digitalWrite(en,LOW);
     digitalWrite(dir,LOW);
-    for (int i=0;i<11000;i++)
+    for (int i=0;i<12000;i++)
     {
             digitalWrite(steps, HIGH);
             QThread::usleep(15);
@@ -118,18 +118,18 @@ else if(ui->radioButton_11->isChecked())
 
     digitalWrite(en,LOW);
     digitalWrite(dir,LOW);
-    for (int i=0;i<11000;i++)
+    for (int i=0;i<12000;i++)
     {
             digitalWrite(steps, HIGH);
 //            if(i>1500 && i<4000)
 //                QThread::usleep(1000);
 //            else
-                QThread::usleep(50);
+                QThread::usleep(30);
             digitalWrite(steps, LOW);
 //            if(i>1500 && i<4000)
 //                QThread::usleep(1000);
 //            else
-                QThread::usleep(50);
+                QThread::usleep(30);
             read[i]=readadc();
             qDebug()<<read[i];
         }
@@ -137,7 +137,7 @@ else if(ui->radioButton_11->isChecked())
 //    {
 //           filtdata[i]=(read[i]+read[i-1]+read[i-2]+read[i-3]+read[i-4]+read[i-5])/5;
 //        }
-    for (int i=0;i<9995;i=i+5)
+    for (int i=0;i<11995;i=i+5)
     {
            filtdata[i]=(read[i]+read[i+1]+read[i+2]+read[i+3]+read[i+4]+read[i+5])/5;
            filtdata[i+1]=filtdata[i];
@@ -167,7 +167,7 @@ void MainWindow::makePlot()
 {
     // generate some data:
     QVector<double> x(20000), y(20000), y1(20000);// initialize with entries 0..100
-    for (int i=0; i<10000; ++i)
+    for (int i=0; i<12000; ++i)
     {
 //      x[i] = i/50.0 - 1; // x goes from -1 to 1
 //      y[i] = x[i]*x[i]; // let's plot a quadratic function
@@ -185,7 +185,7 @@ void MainWindow::makePlot()
     ui->customPlot->xAxis->setLabel("x");
     ui->customPlot->yAxis->setLabel("y");
     // set axes ranges, so we see all data:
-    ui->customPlot->xAxis->setRange(0, 10000);
+    ui->customPlot->xAxis->setRange(0, 12000);
     ui->customPlot->yAxis->setRange(0, 1500);
     ui->customPlot->replot();
 
