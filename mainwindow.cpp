@@ -94,32 +94,37 @@ void MainWindow::on_pushButton_3_clicked()
 
     //reading
     on_pushButton_clicked();
-    QThread::sleep(3);
-if(ui->radioButton_2->isChecked())
-    pwmWrite (LED, 50);
-else if(ui->radioButton_3->isChecked())
-    pwmWrite (LED, 100);
-else if(ui->radioButton_4->isChecked())
-    pwmWrite (LED, 150);
-else if(ui->radioButton_5->isChecked())
-    pwmWrite (LED, 200);
-else if(ui->radioButton_6->isChecked())
-    pwmWrite (LED, 250);
-else if(ui->radioButton_7->isChecked())
-    pwmWrite (LED, 300);
-else if(ui->radioButton_8->isChecked())
-    pwmWrite (LED, 350);
-else if(ui->radioButton_9->isChecked())
-    pwmWrite (LED, 400);
-else if(ui->radioButton_10->isChecked())
-    pwmWrite (LED, 450);
-else
-    pwmWrite (LED, 500);
+QThread::sleep(1);
+
 
     digitalWrite(en,LOW);
     digitalWrite(dir,LOW);
     for (int i=0;i<12000;i++)
     {
+         if(i>6250 && i<9000)
+             if(ui->radioButton_2->isChecked())
+                 pwmWrite (LED, 50);
+             else if(ui->radioButton_3->isChecked())
+                 pwmWrite (LED, 100);
+             else if(ui->radioButton_4->isChecked())
+                 pwmWrite (LED, 150);
+             else if(ui->radioButton_5->isChecked())
+                 pwmWrite (LED, 200);
+             else if(ui->radioButton_6->isChecked())
+                 pwmWrite (LED, 250);
+             else if(ui->radioButton_7->isChecked())
+                 pwmWrite (LED, 300);
+             else if(ui->radioButton_8->isChecked())
+                 pwmWrite (LED, 350);
+             else if(ui->radioButton_9->isChecked())
+                 pwmWrite (LED, 400);
+             else if(ui->radioButton_10->isChecked())
+                 pwmWrite (LED, 450);
+             else
+                 pwmWrite (LED, 500);
+         else {
+             pwmWrite (LED, 0);
+         }
             digitalWrite(steps, HIGH);
 //            if(i>1500 && i<4000)
 //                QThread::usleep(1000);
@@ -153,7 +158,7 @@ else
 
         }
      digitalWrite(en,HIGH);
-     pwmWrite (LED, 0);
+     //pwmWrite (LED, 0);
      makePlot();
 
 }
@@ -172,7 +177,7 @@ void MainWindow::makePlot()
 {
     // generate some data:
     QVector<double> x(20000), y(20000), y1(20000);// initialize with entries 0..100
-    for (int i=0; i<12000; ++i)
+    for (int i=0; i<12000; i++)
     {
 //      x[i] = i/50.0 - 1; // x goes from -1 to 1
 //      y[i] = x[i]*x[i]; // let's plot a quadratic function
@@ -180,6 +185,57 @@ void MainWindow::makePlot()
         y[i]=read[i];
         y1[i]=filtdata[i];
     }
+    double temp1=0;
+    double pos1=0;
+    for (int i=6250;i<7800;i++)
+    {
+
+      if(temp1<y1[i])
+      {
+          temp1=y1[i];
+          pos1=i;
+      }
+
+    }
+
+    double temp2=0;
+    double pos2=0;
+    for (int i=7800;i<9000;i++)
+    {
+
+      if(temp2<y1[i])
+      {
+          temp2=y1[i];
+          pos2=i;
+      }
+
+    }
+    qDebug()<<temp1<<temp2;
+    qDebug()<<pos1<<pos2;
+    QVector<double> xv1(2);
+    QVector<double> yv1(2);
+    QVector<double> xv2(2);
+    QVector<double> yv2(2);
+    xv1[0]=xv1[1]=pos1;
+    xv2[0]=xv2[1]=pos2;
+    yv1[0]=yv2[0]=0;
+    yv1[1]=temp1;
+    yv2[1]=temp2;
+
+    int test=0;
+    for(int i=pos1-10;i<pos1+10;i++)
+    {
+        test+=y1[i];
+    }
+    test=test/20;
+    int control=0;
+    for(int i=pos2-10;i<pos2+10;i++)
+    {
+        control+=y1[i];
+    }
+    control=control/20;
+    ui->label->setNum(test);
+     ui->label_2->setNum(control);
     // create graph and assign data to it:
     ui->customPlot->addGraph();
     ui->customPlot->graph(0)->setData(x,y);
@@ -187,11 +243,20 @@ void MainWindow::makePlot()
     ui->customPlot->addGraph();
     ui->customPlot->graph(1)->setPen(QPen(Qt::red));
     ui->customPlot->graph(1)->setData(x,y1);
+    //vertical  line 2
+    ui->customPlot->addGraph();
+    ui->customPlot->graph(2)->setPen(QPen(Qt::blue));
+    ui->customPlot->graph(2)->setData(xv1,yv1);
+    //vertical line 2
+    ui->customPlot->addGraph();
+    ui->customPlot->graph(3)->setPen(QPen(Qt::blue));
+    ui->customPlot->graph(3)->setData(xv2,yv2);
+
     // give the axes some labels:
     ui->customPlot->xAxis->setLabel("x");
     ui->customPlot->yAxis->setLabel("y");
     // set axes ranges, so we see all data:
-    ui->customPlot->xAxis->setRange(0, 12000);
+    ui->customPlot->xAxis->setRange(6250, 9000);
     ui->customPlot->yAxis->setRange(0, 1500);
     ui->customPlot->replot();
 
