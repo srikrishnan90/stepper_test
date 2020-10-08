@@ -8,6 +8,7 @@
 #include <mcp3004.h>
 #include <wiringPiSPI.h>
 #include <softPwm.h>
+#include <Iir.h>
 
 
 namespace Ui {

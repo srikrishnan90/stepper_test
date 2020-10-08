@@ -40,6 +40,8 @@ MainWindow::MainWindow(QWidget *parent) :
      pwmWrite (LED, 0);
      ui->radioButton_7->setChecked(true);
 
+
+
 }
 
 MainWindow::~MainWindow()
@@ -95,7 +97,11 @@ void MainWindow::on_pushButton_3_clicked()
     //reading
     on_pushButton_clicked();
 QThread::sleep(1);
-
+const int order = 4; // 4th order (=2 biquads)
+Iir::Butterworth::LowPass<order> f;
+const float samplingrate = 1000; // Hz
+const float cutoff_frequency = 5; // Hz
+f.setup (samplingrate, cutoff_frequency);
 
     digitalWrite(en,LOW);
     digitalWrite(dir,LOW);
@@ -103,25 +109,25 @@ QThread::sleep(1);
     {
          if(i>6250 && i<9000)
              if(ui->radioButton_2->isChecked())
-                 pwmWrite (LED, 50);
-             else if(ui->radioButton_3->isChecked())
-                 pwmWrite (LED, 100);
-             else if(ui->radioButton_4->isChecked())
-                 pwmWrite (LED, 150);
-             else if(ui->radioButton_5->isChecked())
-                 pwmWrite (LED, 200);
-             else if(ui->radioButton_6->isChecked())
-                 pwmWrite (LED, 250);
-             else if(ui->radioButton_7->isChecked())
                  pwmWrite (LED, 300);
-             else if(ui->radioButton_8->isChecked())
+             else if(ui->radioButton_3->isChecked())
+                 pwmWrite (LED, 310);
+             else if(ui->radioButton_4->isChecked())
+                 pwmWrite (LED, 320);
+             else if(ui->radioButton_5->isChecked())
+                 pwmWrite (LED, 330);
+             else if(ui->radioButton_6->isChecked())
+                 pwmWrite (LED, 340);
+             else if(ui->radioButton_7->isChecked())
                  pwmWrite (LED, 350);
+             else if(ui->radioButton_8->isChecked())
+                 pwmWrite (LED, 360);
              else if(ui->radioButton_9->isChecked())
-                 pwmWrite (LED, 400);
+                 pwmWrite (LED, 370);
              else if(ui->radioButton_10->isChecked())
-                 pwmWrite (LED, 450);
+                 pwmWrite (LED, 380);
              else
-                 pwmWrite (LED, 500);
+                 pwmWrite (LED, 390);
          else {
              pwmWrite (LED, 0);
          }
@@ -141,22 +147,23 @@ QThread::sleep(1);
 //                    read[i]=read[i-1];
 //                }
                 read[i]=readadc();
+                filtdata[i]=f.filter(read[i]);
             qDebug()<<read[i];
         }
 //    for (int i=5;i<10000;i++)
 //    {
 //           filtdata[i]=(read[i]+read[i-1]+read[i-2]+read[i-3]+read[i-4]+read[i-5])/5;
 //        }
-    for (int i=0;i<12000;i++)
-    {
+//    for (int i=0;i<12000;i++)
+//    {
 
-            for(int t=0;t<=50;t++)
-            {
-                filtdata[i]+=read[i+t];
-            }
-            filtdata[i]=filtdata[i]/50;
+//            for(int t=0;t<=100;t++)
+//            {
+//                filtdata[i]+=read[i+t];
+//            }
+//            filtdata[i]=filtdata[i]/100;
 
-        }
+//        }
      digitalWrite(en,HIGH);
      //pwmWrite (LED, 0);
      makePlot();
@@ -234,6 +241,12 @@ void MainWindow::makePlot()
         control+=y1[i];
     }
     control=control/20;
+
+    int max=0;
+    if(control>test)
+        max=control;
+    else max=test;
+
     ui->label->setNum(test);
      ui->label_2->setNum(control);
     // create graph and assign data to it:
@@ -257,7 +270,7 @@ void MainWindow::makePlot()
     ui->customPlot->yAxis->setLabel("y");
     // set axes ranges, so we see all data:
     ui->customPlot->xAxis->setRange(6250, 9000);
-    ui->customPlot->yAxis->setRange(0, 1500);
+    ui->customPlot->yAxis->setRange(0, max+100);
     ui->customPlot->replot();
 
 }
