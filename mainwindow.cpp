@@ -17,6 +17,10 @@
 
 static int read[20000];
 static int filtdata[20000];
+static int win_start=6800;
+static int win_end=9000;
+static int speed=30;
+
 
 
 MainWindow::MainWindow(QWidget *parent) :
@@ -99,15 +103,15 @@ void MainWindow::on_pushButton_3_clicked()
 QThread::sleep(1);
 const int order = 4; // 4th order (=2 biquads)
 Iir::Butterworth::LowPass<order> f;
-const float samplingrate = 1000; // Hz
-const float cutoff_frequency = 5; // Hz
+const double samplingrate = 1000; // Hz
+const double cutoff_frequency = 5; // Hz
 f.setup (samplingrate, cutoff_frequency);
 
     digitalWrite(en,LOW);
     digitalWrite(dir,LOW);
     for (int i=0;i<12000;i++)
     {
-         if(i>6250 && i<9000)
+         if(i>win_start && i<win_end)
              if(ui->radioButton_2->isChecked())
                  pwmWrite (LED, 300);
              else if(ui->radioButton_3->isChecked())
@@ -135,12 +139,12 @@ f.setup (samplingrate, cutoff_frequency);
 //            if(i>1500 && i<4000)
 //                QThread::usleep(1000);
 //            else
-                QThread::usleep(30);
+                QThread::usleep(speed);
             digitalWrite(steps, LOW);
 //            if(i>1500 && i<4000)
 //                QThread::usleep(1000);
 //            else
-                QThread::usleep(30);
+                QThread::usleep(speed);
 //                if(i%50==0)
 //                    read[i]=readadc();
 //                else {
@@ -193,8 +197,8 @@ void MainWindow::makePlot()
         y1[i]=filtdata[i];
     }
     double temp1=0;
-    double pos1=0;
-    for (int i=6250;i<7800;i++)
+    int pos1=0;
+    for (int i=win_start;i<(win_start+(win_end-win_start)/2)-50;i++)
     {
 
       if(temp1<y1[i])
@@ -206,8 +210,8 @@ void MainWindow::makePlot()
     }
 
     double temp2=0;
-    double pos2=0;
-    for (int i=7800;i<9000;i++)
+    int pos2=0;
+    for (int i=(win_start+(win_end-win_start)/2)+50;i<win_end;i++)
     {
 
       if(temp2<y1[i])
@@ -269,7 +273,7 @@ void MainWindow::makePlot()
     ui->customPlot->xAxis->setLabel("x");
     ui->customPlot->yAxis->setLabel("y");
     // set axes ranges, so we see all data:
-    ui->customPlot->xAxis->setRange(6250, 9000);
+    ui->customPlot->xAxis->setRange(win_start, win_end);
     ui->customPlot->yAxis->setRange(0, max+100);
     ui->customPlot->replot();
 
