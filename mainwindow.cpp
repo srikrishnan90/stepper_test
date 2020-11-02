@@ -17,9 +17,13 @@
 
 static int read[20000];
 static int filtdata[20000];
-static int win_start=6800;
-static int win_end=9000;
-static int speed=30;
+
+static int win_start=4000;
+static int win_end=6000;
+
+static int homing_speed=15;
+static int reading_speed=5;
+
 
 
 
@@ -42,7 +46,7 @@ MainWindow::MainWindow(QWidget *parent) :
      digitalWrite(BARCODE_GND,LOW);
      pinMode (LED, PWM_OUTPUT);
      pwmWrite (LED, 0);
-     ui->radioButton_7->setChecked(true);
+     ui->radioButton_6->setChecked(true);
 
 
 
@@ -67,9 +71,9 @@ void MainWindow::on_pushButton_clicked()
         else
         {
             digitalWrite(steps, HIGH);
-            QThread::usleep(15);
+            QThread::usleep(homing_speed);
             digitalWrite(steps, LOW);
-            QThread::usleep(15);
+            QThread::usleep(homing_speed);
         }
 
     }
@@ -86,9 +90,9 @@ void MainWindow::on_pushButton_2_clicked()
     for (int i=0;i<12000;i++)
     {
             digitalWrite(steps, HIGH);
-            QThread::usleep(15);
+            QThread::usleep(homing_speed);
             digitalWrite(steps, LOW);
-            QThread::usleep(15);
+            QThread::usleep(homing_speed);
         }
      digitalWrite(en,HIGH);
 
@@ -101,10 +105,10 @@ void MainWindow::on_pushButton_3_clicked()
     //reading
     on_pushButton_clicked();
 QThread::sleep(1);
-const int order = 4; // 4th order (=2 biquads)
+const int order = 2; // 4th order (=2 biquads)
 Iir::Butterworth::LowPass<order> f;
-const double samplingrate = 1000; // Hz
-const double cutoff_frequency = 5; // Hz
+const float samplingrate = 1500; // Hz
+const float cutoff_frequency = 3.5; // Hz
 f.setup (samplingrate, cutoff_frequency);
 
     digitalWrite(en,LOW);
@@ -113,25 +117,25 @@ f.setup (samplingrate, cutoff_frequency);
     {
          if(i>win_start && i<win_end)
              if(ui->radioButton_2->isChecked())
-                 pwmWrite (LED, 300);
+                 pwmWrite (LED, 160);
              else if(ui->radioButton_3->isChecked())
-                 pwmWrite (LED, 310);
+                 pwmWrite (LED, 170);
              else if(ui->radioButton_4->isChecked())
-                 pwmWrite (LED, 320);
+                 pwmWrite (LED, 180);
              else if(ui->radioButton_5->isChecked())
-                 pwmWrite (LED, 330);
+                 pwmWrite (LED, 190);
              else if(ui->radioButton_6->isChecked())
-                 pwmWrite (LED, 340);
+                 pwmWrite (LED, 200);
              else if(ui->radioButton_7->isChecked())
-                 pwmWrite (LED, 350);
+                 pwmWrite (LED, 210);
              else if(ui->radioButton_8->isChecked())
-                 pwmWrite (LED, 360);
+                 pwmWrite (LED, 220);
              else if(ui->radioButton_9->isChecked())
-                 pwmWrite (LED, 370);
+                 pwmWrite (LED, 230);
              else if(ui->radioButton_10->isChecked())
-                 pwmWrite (LED, 380);
+                 pwmWrite (LED, 240);
              else
-                 pwmWrite (LED, 390);
+                 pwmWrite (LED, 250);
          else {
              pwmWrite (LED, 0);
          }
@@ -139,20 +143,34 @@ f.setup (samplingrate, cutoff_frequency);
 //            if(i>1500 && i<4000)
 //                QThread::usleep(1000);
 //            else
-                QThread::usleep(speed);
+                QThread::usleep(reading_speed);
             digitalWrite(steps, LOW);
 //            if(i>1500 && i<4000)
 //                QThread::usleep(1000);
 //            else
-                QThread::usleep(speed);
+                QThread::usleep(reading_speed);
 //                if(i%50==0)
 //                    read[i]=readadc();
 //                else {
 //                    read[i]=read[i-1];
 //                }
+//                if(i%4==0)
+//                {
+
+//                    read[i]=readadc();
+
+//                }
+//                else
+//                {
+//                     read[i]=read[i-1];
+//                }
                 read[i]=readadc();
+                //read[i]=read[i]*4;
                 filtdata[i]=f.filter(read[i]);
-            qDebug()<<read[i];
+                qDebug()<<read[i];
+
+
+
         }
 //    for (int i=5;i<10000;i++)
 //    {
