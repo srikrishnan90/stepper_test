@@ -18,11 +18,7 @@
 static int read[20000];
 static int filtdata[20000];
 
-static int win_start=4000;
-static int win_end=6000;
-
-static int homing_speed=15;
-static int reading_speed=5;
+static int opt=0;
 
 
 
@@ -46,10 +42,18 @@ MainWindow::MainWindow(QWidget *parent) :
      digitalWrite(BARCODE_GND,LOW);
      pinMode (LED, PWM_OUTPUT);
      pwmWrite (LED, 0);
-     ui->radioButton_6->setChecked(true);
-
-
-
+     ui->stackedWidget->setCurrentIndex(0);
+     QSqlDatabase sqdb = QSqlDatabase::addDatabase("QSQLITE");
+     sqdb.setDatabaseName("/home/pi/git/stepper_test/FIA.db");
+     if(!sqdb.open())
+         {
+             qDebug() << "Can't Connect to DB !";
+         }
+         else
+         {
+             qDebug() << "Connected Successfully to DB !";
+     }
+     //setWindowFlags(Qt::FramelessWindowHint);
 }
 
 MainWindow::~MainWindow()
@@ -60,6 +64,14 @@ MainWindow::~MainWindow()
 void MainWindow::on_pushButton_clicked()
 {
     //Homing
+    unsigned long homing_speed=0;
+    QSqlQuery query;
+    query.prepare("select homespeed from FIA where sno=1");
+    query.exec();
+    while(query.next())
+    {
+        homing_speed=query.value(0).toUInt();
+    }
     digitalWrite(en,LOW);
     digitalWrite(dir,HIGH);
     for (int i=0;i<15000;i++)
@@ -83,6 +95,14 @@ void MainWindow::on_pushButton_clicked()
 void MainWindow::on_pushButton_2_clicked()
 {
     //Initialization
+    unsigned long homing_speed=0;
+    QSqlQuery query;
+    query.prepare("select homespeed from FIA where sno=1");
+    query.exec();
+    while(query.next())
+    {
+        homing_speed=query.value(0).toUInt();
+    }
     on_pushButton_clicked();
 
     digitalWrite(en,LOW);
@@ -103,12 +123,27 @@ void MainWindow::on_pushButton_3_clicked()
 
 
     //reading
+    int intensity=0, win_start=0,win_end=0;
+    unsigned long reading_speed=0;
+    double samplingrate=0,cutoff_frequency=0;
+    QSqlQuery query;
+    query.prepare("select intensity, samprate, cutoff,readspeed,startregion,endregion from FIA where sno=1");
+    query.exec();
+    while(query.next())
+    {
+        intensity=query.value(0).toInt();
+        samplingrate=query.value(1).toDouble();
+        cutoff_frequency=query.value(2).toDouble();
+        reading_speed=query.value(3).toUInt();
+        win_start=query.value(4).toInt();
+        win_end=query.value(5).toInt();
+    }
     on_pushButton_clicked();
 QThread::sleep(1);
 const int order = 2; // 4th order (=2 biquads)
 Iir::Butterworth::LowPass<order> f;
-const float samplingrate = 1500; // Hz
-const float cutoff_frequency = 3.5; // Hz
+//const float samplingrate = 1500; // Hz
+//const float cutoff_frequency = 4; // Hz
 f.setup (samplingrate, cutoff_frequency);
 
     digitalWrite(en,LOW);
@@ -116,79 +151,25 @@ f.setup (samplingrate, cutoff_frequency);
     for (int i=0;i<12000;i++)
     {
          if(i>win_start && i<win_end)
-             if(ui->radioButton_2->isChecked())
-                 pwmWrite (LED, 160);
-             else if(ui->radioButton_3->isChecked())
-                 pwmWrite (LED, 170);
-             else if(ui->radioButton_4->isChecked())
-                 pwmWrite (LED, 180);
-             else if(ui->radioButton_5->isChecked())
-                 pwmWrite (LED, 190);
-             else if(ui->radioButton_6->isChecked())
-                 pwmWrite (LED, 200);
-             else if(ui->radioButton_7->isChecked())
-                 pwmWrite (LED, 210);
-             else if(ui->radioButton_8->isChecked())
-                 pwmWrite (LED, 220);
-             else if(ui->radioButton_9->isChecked())
-                 pwmWrite (LED, 230);
-             else if(ui->radioButton_10->isChecked())
-                 pwmWrite (LED, 240);
-             else
-                 pwmWrite (LED, 250);
-         else {
+         {
+             pwmWrite (LED, intensity);
+         }
+         else
+         {
              pwmWrite (LED, 0);
          }
-            digitalWrite(steps, HIGH);
-//            if(i>1500 && i<4000)
-//                QThread::usleep(1000);
-//            else
-                QThread::usleep(reading_speed);
-            digitalWrite(steps, LOW);
-//            if(i>1500 && i<4000)
-//                QThread::usleep(1000);
-//            else
-                QThread::usleep(reading_speed);
-//                if(i%50==0)
-//                    read[i]=readadc();
-//                else {
-//                    read[i]=read[i-1];
-//                }
-//                if(i%4==0)
-//                {
+         digitalWrite(steps, HIGH);
+         QThread::usleep(reading_speed);
+         digitalWrite(steps, LOW);
+         QThread::usleep(reading_speed);
 
-//                    read[i]=readadc();
-
-//                }
-//                else
-//                {
-//                     read[i]=read[i-1];
-//                }
-                read[i]=readadc();
-                //read[i]=read[i]*4;
-                filtdata[i]=f.filter(read[i]);
-                qDebug()<<read[i];
-
-
-
-        }
-//    for (int i=5;i<10000;i++)
-//    {
-//           filtdata[i]=(read[i]+read[i-1]+read[i-2]+read[i-3]+read[i-4]+read[i-5])/5;
-//        }
-//    for (int i=0;i<12000;i++)
-//    {
-
-//            for(int t=0;t<=100;t++)
-//            {
-//                filtdata[i]+=read[i+t];
-//            }
-//            filtdata[i]=filtdata[i]/100;
-
-//        }
-     digitalWrite(en,HIGH);
-     //pwmWrite (LED, 0);
-     makePlot();
+         read[i]=readadc();
+         filtdata[i]=f.filter(read[i]);
+         qDebug()<<read[i];
+    }
+    digitalWrite(en,HIGH);
+    pwmWrite (LED, 0);
+    makePlot();
 
 }
 
@@ -205,6 +186,15 @@ int MainWindow::readadc()
 void MainWindow::makePlot()
 {
     // generate some data:
+    int win_start=0,win_end=0;
+    QSqlQuery query;
+    query.prepare("select startregion, endregion from FIA where sno=1");
+    query.exec();
+    while(query.next())
+    {
+        win_start=query.value(0).toInt();
+        win_end=query.value(1).toInt();
+    }
     QVector<double> x(20000), y(20000), y1(20000);// initialize with entries 0..100
     for (int i=0; i<12000; i++)
     {
@@ -295,4 +285,245 @@ void MainWindow::makePlot()
     ui->customPlot->yAxis->setRange(0, max+100);
     ui->customPlot->replot();
 
+}
+
+void MainWindow::on_pushButton_19_clicked()
+{
+    ui->stackedWidget->setCurrentIndex(2);
+    ui->label_17->setText("Intensity[0-1024]");
+    opt=1;
+    int intensity=0;
+    QSqlQuery query;
+    query.prepare("select intensity from FIA where sno=1");
+    query.exec();
+    while(query.next())
+    {
+        intensity=query.value(0).toInt();
+    }
+    QString ity=QString::number(intensity);
+    ui->lineEdit_9->setText(ity);
+}
+
+void MainWindow::on_toolButton_clicked()
+{
+    ui->stackedWidget->setCurrentIndex(0);
+}
+
+void MainWindow::on_toolButton_2_clicked()
+{
+    ui->stackedWidget->setCurrentIndex(1);
+    int intensity=0,samprate=0,cutoff=0,homing_speed=0,reading_speed=0,win_start=0,win_end=0;
+
+    QSqlQuery query;
+    query.prepare("select intensity, samprate, cutoff, homespeed,readspeed, startregion,endregion from FIA where sno=1");
+    query.exec();
+    while(query.next())
+    {
+        intensity=query.value(0).toInt();
+        samprate=query.value(1).toInt();
+        cutoff=query.value(2).toInt();
+        homing_speed=query.value(3).toInt();
+        reading_speed=query.value(4).toInt();
+        win_start=query.value(5).toInt();
+        win_end=query.value(6).toInt();
+    }
+    QString ity=QString::number(intensity);
+    QString srt=QString::number(samprate);
+    QString cut=QString::number(cutoff);
+    QString hms=QString::number(homing_speed);
+    QString rds=QString::number(reading_speed);
+    QString wis=QString::number(win_start);
+    QString wie=QString::number(win_end);
+
+    ui->lineEdit->setText(ity);
+    ui->lineEdit_3->setText(srt);
+    ui->lineEdit_4->setText(cut);
+    ui->lineEdit_5->setText(hms);
+    ui->lineEdit_6->setText(rds);
+    ui->lineEdit_7->setText(wis);
+    ui->lineEdit_8->setText(wie);
+
+}
+
+
+void MainWindow::on_pushButton_21_clicked()
+{
+    ui->stackedWidget->setCurrentIndex(2);
+    ui->label_17->setText("Sampling Rate");
+    opt=2;
+    int samprate=0;
+    QSqlQuery query;
+    query.prepare("select samprate from FIA where sno=1");
+    query.exec();
+    while(query.next())
+    {
+        samprate=query.value(0).toInt();
+    }
+    QString srt=QString::number(samprate);
+    ui->lineEdit_9->setText(srt);
+}
+
+void MainWindow::on_pushButton_22_clicked()
+{
+    ui->stackedWidget->setCurrentIndex(2);
+    ui->label_17->setText("Cut Off Freq.");
+    opt=3;
+    int cutoff=0;
+    QSqlQuery query;
+    query.prepare("select cutoff from FIA where sno=1");
+    query.exec();
+    while(query.next())
+    {
+        cutoff=query.value(0).toInt();
+    }
+    QString cut=QString::number(cutoff);
+    ui->lineEdit_9->setText(cut);
+}
+
+void MainWindow::on_pushButton_23_clicked()
+{
+    ui->stackedWidget->setCurrentIndex(2);
+    ui->label_17->setText("Homing Speed");
+    opt=4;
+    int homespeed=0;
+    QSqlQuery query;
+    query.prepare("select homespeed from FIA where sno=1");
+    query.exec();
+    while(query.next())
+    {
+        homespeed=query.value(0).toInt();
+    }
+    QString hms=QString::number(homespeed);
+    ui->lineEdit_9->setText(hms);
+}
+
+void MainWindow::on_pushButton_24_clicked()
+{
+    ui->stackedWidget->setCurrentIndex(2);
+    ui->label_17->setText("Reading Speed");
+    opt=5;
+    int readspeed=0;
+    QSqlQuery query;
+    query.prepare("select readspeed from FIA where sno=1");
+    query.exec();
+    while(query.next())
+    {
+        readspeed=query.value(0).toInt();
+    }
+    QString rds=QString::number(readspeed);
+    ui->lineEdit_9->setText(rds);
+}
+
+void MainWindow::on_pushButton_25_clicked()
+{
+    ui->stackedWidget->setCurrentIndex(2);
+    ui->label_17->setText("Starting Region");
+    opt=6;
+    int startregion=0;
+    QSqlQuery query;
+    query.prepare("select startregion from FIA where sno=1");
+    query.exec();
+    while(query.next())
+    {
+        startregion=query.value(0).toInt();
+    }
+    QString wis=QString::number(startregion);
+    ui->lineEdit_9->setText(wis);
+}
+
+void MainWindow::on_pushButton_26_clicked()
+{
+    ui->stackedWidget->setCurrentIndex(2);
+    ui->label_17->setText("Ending Region");
+    opt=7;
+    int endregion=0;
+    QSqlQuery query;
+    query.prepare("select endregion from FIA where sno=1");
+    query.exec();
+    while(query.next())
+    {
+        endregion=query.value(0).toInt();
+    }
+    QString wie=QString::number(endregion);
+    ui->lineEdit_9->setText(wie);
+}
+
+void MainWindow::on_pushButton_4_clicked()
+{
+    ui->lineEdit_9->setText(ui->lineEdit_9->text()+"1");
+}
+
+void MainWindow::on_pushButton_18_clicked()
+{
+    ui->lineEdit_9->backspace();
+}
+
+void MainWindow::on_pushButton_5_clicked()
+{
+    ui->lineEdit_9->setText(ui->lineEdit_9->text()+"2");
+}
+
+void MainWindow::on_pushButton_6_clicked()
+{
+    ui->lineEdit_9->setText(ui->lineEdit_9->text()+"3");
+}
+
+void MainWindow::on_pushButton_11_clicked()
+{
+    ui->lineEdit_9->setText(ui->lineEdit_9->text()+"4");
+}
+
+void MainWindow::on_pushButton_12_clicked()
+{
+    ui->lineEdit_9->setText(ui->lineEdit_9->text()+"5");
+}
+
+void MainWindow::on_pushButton_10_clicked()
+{
+    ui->lineEdit_9->setText(ui->lineEdit_9->text()+"6");
+}
+
+void MainWindow::on_pushButton_14_clicked()
+{
+    ui->lineEdit_9->setText(ui->lineEdit_9->text()+"7");
+}
+
+void MainWindow::on_pushButton_15_clicked()
+{
+    ui->lineEdit_9->setText(ui->lineEdit_9->text()+"8");
+}
+
+void MainWindow::on_pushButton_13_clicked()
+{
+    ui->lineEdit_9->setText(ui->lineEdit_9->text()+"9");
+}
+
+void MainWindow::on_pushButton_16_clicked()
+{
+    ui->lineEdit_9->setText(ui->lineEdit_9->text()+"0");
+}
+
+void MainWindow::on_pushButton_17_clicked()
+{
+        QString val=ui->lineEdit_9->text();
+        QSqlQuery query;
+
+        if(opt==1)
+            query.prepare("update FIA set intensity=:val where sno=1");
+        else if(opt==2)
+             query.prepare("update FIA set samprate=:val where sno=1");
+        else if(opt==3)
+            query.prepare("update FIA set cutoff=:val where sno=1");
+        else if(opt==4)
+            query.prepare("update FIA set homespeed=:val where sno=1");
+        else if(opt==5)
+            query.prepare("update FIA set readspeed=:val where sno=1");
+        else if(opt==6)
+            query.prepare("update FIA set startregion=:val where sno=1");
+        else if(opt==7)
+            query.prepare("update FIA set endregion=:val where sno=1");
+
+        query.bindValue(":val",val);
+        query.exec();
+        on_toolButton_2_clicked();
 }
