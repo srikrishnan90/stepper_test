@@ -53,7 +53,26 @@ MainWindow::MainWindow(QWidget *parent) :
          {
              qDebug() << "Connected Successfully to DB !";
      }
-     //setWindowFlags(Qt::FramelessWindowHint);
+     setWindowFlags(Qt::FramelessWindowHint);
+     ui->customPlot->setBackground(QColor(0,0,26));
+     ui->customPlot->xAxis->setBasePen(QPen(Qt::white, 1));
+     ui->customPlot->yAxis->setBasePen(QPen(Qt::white, 1));
+     ui->customPlot->xAxis->setTickPen(QPen(Qt::white, 1));
+     ui->customPlot->yAxis->setTickPen(QPen(Qt::white, 1));
+//     ui->customPlot->xAxis->setSubTickPen(QPen(Qt::white, 1));
+//     ui->customPlot->yAxis->setSubTickPen(QPen(Qt::white, 1));
+     ui->customPlot->xAxis->setTickLabelColor(Qt::white);
+     ui->customPlot->yAxis->setTickLabelColor(Qt::white);
+//     ui->customPlot->xAxis->grid()->setPen(QPen(QColor(140, 140, 140), 1, Qt::DotLine));
+//     ui->customPlot->yAxis->grid()->setPen(QPen(QColor(140, 140, 140), 1, Qt::DotLine));
+//     ui->customPlot->xAxis->grid()->setSubGridPen(QPen(QColor(80, 80, 80), 1, Qt::DotLine));
+//     ui->customPlot->yAxis->grid()->setSubGridPen(QPen(QColor(80, 80, 80), 1, Qt::DotLine));
+//     ui->customPlot->xAxis->grid()->setSubGridVisible(true);
+//     ui->customPlot->yAxis->grid()->setSubGridVisible(true);
+//     ui->customPlot->xAxis->grid()->setZeroLinePen(Qt::NoPen);
+//     ui->customPlot->yAxis->grid()->setZeroLinePen(Qt::NoPen);
+//     ui->customPlot->xAxis->setUpperEnding(QCPLineEnding::esSpikeArrow);
+//     ui->customPlot->yAxis->setUpperEnding(QCPLineEnding::esSpikeArrow);
 }
 
 MainWindow::~MainWindow()
@@ -266,15 +285,15 @@ void MainWindow::makePlot()
     ui->customPlot->graph(0)->setData(x,y);
     ui->customPlot->graph(0)->setVisible(false);
     ui->customPlot->addGraph();
-    ui->customPlot->graph(1)->setPen(QPen(Qt::red));
+    ui->customPlot->graph(1)->setPen(QPen(Qt::red,3));
     ui->customPlot->graph(1)->setData(x,y1);
     //vertical  line 2
     ui->customPlot->addGraph();
-    ui->customPlot->graph(2)->setPen(QPen(Qt::blue));
+    ui->customPlot->graph(2)->setPen(QPen(Qt::white,3));
     ui->customPlot->graph(2)->setData(xv1,yv1);
     //vertical line 2
     ui->customPlot->addGraph();
-    ui->customPlot->graph(3)->setPen(QPen(Qt::blue));
+    ui->customPlot->graph(3)->setPen(QPen(Qt::white,3));
     ui->customPlot->graph(3)->setData(xv2,yv2);
 
     // give the axes some labels:
@@ -307,11 +326,13 @@ void MainWindow::on_pushButton_19_clicked()
 void MainWindow::on_toolButton_clicked()
 {
     ui->stackedWidget->setCurrentIndex(0);
+    ui->toolButton_2->setChecked(false);
 }
 
 void MainWindow::on_toolButton_2_clicked()
 {
     ui->stackedWidget->setCurrentIndex(1);
+    ui->toolButton->setChecked(false);
     int intensity=0,samprate=0,cutoff=0,homing_speed=0,reading_speed=0,win_start=0,win_end=0;
 
     QSqlQuery query;
@@ -526,4 +547,9 @@ void MainWindow::on_pushButton_17_clicked()
         query.bindValue(":val",val);
         query.exec();
         on_toolButton_2_clicked();
+}
+
+void MainWindow::on_toolButton_3_clicked()
+{
+    qApp->exit();
 }
