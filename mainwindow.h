@@ -35,6 +35,7 @@ private slots:
     int readadc();
 
     void makePlot();
+    int linearity(int val);
     void on_pushButton_19_clicked();
 
     void on_toolButton_clicked();
@@ -78,6 +79,18 @@ private slots:
     void on_pushButton_17_clicked();
 
     void on_toolButton_3_clicked();
+
+    void on_toolButton_4_clicked();
+
+    void on_pushButton_20_clicked();
+
+    void on_pushButton_28_clicked();
+
+    void on_pushButton_29_clicked();
+
+    void on_pushButton_30_clicked();
+
+    void on_toolButton_5_clicked();
 
 private:
     Ui::MainWindow *ui;

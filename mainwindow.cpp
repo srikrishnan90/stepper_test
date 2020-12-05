@@ -15,8 +15,12 @@
 #define BASE 100
 #define SPI_CHAN 0
 
-static int read[20000];
-static int filtdata[20000];
+static double read[20000];
+static double filtdata[20000];
+
+static int conc[100];
+static int dat[100];
+static int len=0;
 
 static int opt=0;
 
@@ -184,10 +188,44 @@ f.setup (samplingrate, cutoff_frequency);
 
          read[i]=readadc();
          filtdata[i]=f.filter(read[i]);
-         qDebug()<<read[i];
+         //qDebug()<<read[i];
     }
     digitalWrite(en,HIGH);
     pwmWrite (LED, 0);
+    if(ui->radioButton_2->isChecked())
+    {
+        double x1=0,y1=0,x2=0,y2=0;
+        QSqlQuery query;
+        query.prepare("select minraw, maxraw, mincal, maxcal from FIA where sno=1");
+        query.exec();
+        while(query.next())
+        {
+            x1=query.value(0).toInt();
+            x2=query.value(1).toInt();
+            y1=query.value(2).toInt();
+            y2=query.value(3).toInt();
+        }
+        double slope=(y2-y1)/(x2-x1);
+        double intercept=y1-(slope*x1);
+        for (int i=0;i<12000;i++)
+        {
+            filtdata[i]=(slope*(filtdata[i]+intercept));
+            if(filtdata[i]<0)
+                filtdata[i]=0;
+            qDebug()<<filtdata[i];
+        }
+    }
+
+
+        query.prepare("select conc, data from FIA");
+        query.exec();
+        len=0;
+        while(query.next())
+        {
+            conc[len]=query.value(0).toInt();
+            dat[len]=query.value(1).toInt();
+            len++;
+        }
     makePlot();
 
 }
@@ -260,23 +298,103 @@ void MainWindow::makePlot()
     yv1[1]=temp1;
     yv2[1]=temp2;
 
-    int test=0;
+    int control=0, test=0, cr=0,cr1=0,cr2=0,tr=0,tr1=0,tr2=0;
+
+
     for(int i=pos1-10;i<pos1+10;i++)
+    {
+        control+=y1[i];
+    }
+   control=control/20;
+   for(int i=pos1-220;i<pos1-200;i++)
+   {
+       cr1+=y1[i];
+   }
+    cr1=cr1/20;
+    for(int i=pos1+200;i<pos1+220;i++)
+    {
+        cr2+=y1[i];
+    }
+     cr2=cr2/20;
+     cr=(cr1+cr2)/2;
+    for(int i=pos2-10;i<pos2+10;i++)
     {
         test+=y1[i];
     }
     test=test/20;
-    int control=0;
-    for(int i=pos2-10;i<pos2+10;i++)
+
+    for(int i=pos2-220;i<pos2-200;i++)
     {
-        control+=y1[i];
+        tr1+=y1[i];
     }
-    control=control/20;
+     tr1=tr1/20;
+     for(int i=pos2+200;i<pos2+220;i++)
+     {
+         tr2+=y1[i];
+     }
+      tr2=tr2/20;
+      tr=(tr1+tr2)/2;
+
+      if(ui->radioButton_6->isChecked())
+      {
+          qDebug()<<control<<cr<<test<<tr;
+          control=control-cr;
+          if(control<0)
+              control=0;
+          test=test-tr;
+          if(test<0)
+              test=0;
+      }
 
     int max=0;
     if(control>test)
         max=control;
     else max=test;
+
+    //Qantitative readout
+    int point=0;
+    for(int i=0;i<len;i++)
+    {
+        if(test<dat[i])
+        {
+            point=i;
+            break;
+        }
+        else if(test>dat[len-1])
+        {
+            point=len;
+            break;
+        }
+    }
+    qDebug()<<"POINT="<<point;
+    double result=0;
+    if(point==0)
+    {
+        result=conc[0];
+        QString res=QString::number(result);
+        ui->label_24->setText("< "+res);
+    }
+
+    else if(point==len)
+    {
+        result=conc[len];
+        QString res=QString::number(result);
+        ui->label_24->setText("> "+res);
+    }
+    else
+    {
+        double x1=0,y1=0,x2=0,y2=0;
+
+        x1=dat[point-1];
+        x2=dat[point];
+        y1=conc[point-1];
+        y2=conc[point];
+        double slope=(y2-y1)/(x2-x1);
+        double intercept=y1-(slope*x1);
+        result=slope*(test+intercept);
+        ui->label_24->setText(QString::number(result, 'f', 2));
+    }
+
 
     ui->label->setNum(test);
      ui->label_2->setNum(control);
@@ -306,6 +424,26 @@ void MainWindow::makePlot()
 
 }
 
+int MainWindow::linearity(int val)
+{
+    int x1=0,y1=0,x2=0,y2=0;
+    QSqlQuery query;
+    query.prepare("select minraw, maxraw, mincal, maxcal from FIA where sno=1");
+    query.exec();
+    while(query.next())
+    {
+        x1=query.value(0).toInt();
+        x2=query.value(1).toInt();
+        y1=query.value(2).toInt();
+        y2=query.value(3).toInt();
+    }
+    int slope=(y2-y1)/(x2-x1);
+    int intercept=y1-(slope*x1);
+    int result=slope*(val+intercept);
+    return result;
+
+}
+
 void MainWindow::on_pushButton_19_clicked()
 {
     ui->stackedWidget->setCurrentIndex(2);
@@ -327,12 +465,14 @@ void MainWindow::on_toolButton_clicked()
 {
     ui->stackedWidget->setCurrentIndex(0);
     ui->toolButton_2->setChecked(false);
+    ui->toolButton_4->setChecked(false);
 }
 
 void MainWindow::on_toolButton_2_clicked()
 {
     ui->stackedWidget->setCurrentIndex(1);
     ui->toolButton->setChecked(false);
+    ui->toolButton_4->setChecked(false);
     int intensity=0,samprate=0,cutoff=0,homing_speed=0,reading_speed=0,win_start=0,win_end=0;
 
     QSqlQuery query;
@@ -543,13 +683,130 @@ void MainWindow::on_pushButton_17_clicked()
             query.prepare("update FIA set startregion=:val where sno=1");
         else if(opt==7)
             query.prepare("update FIA set endregion=:val where sno=1");
+        else if(opt==8)
+            query.prepare("update FIA set minraw=:val where sno=1");
+        else if(opt==9)
+            query.prepare("update FIA set maxraw=:val where sno=1");
+        else if(opt==10)
+            query.prepare("update FIA set mincal=:val where sno=1");
+        else if(opt==11)
+            query.prepare("update FIA set maxcal=:val where sno=1");
 
         query.bindValue(":val",val);
         query.exec();
-        on_toolButton_2_clicked();
+        if(opt==8||opt==9||opt==10||opt==11)
+        {
+            on_toolButton_4_clicked();
+        }
+        else
+        {
+          on_toolButton_2_clicked();
+        }
 }
 
 void MainWindow::on_toolButton_3_clicked()
 {
     qApp->exit();
+}
+
+void MainWindow::on_toolButton_4_clicked()
+{
+    ui->stackedWidget->setCurrentIndex(3);
+    ui->toolButton->setChecked(false);
+    ui->toolButton_2->setChecked(false);
+    int minraw=0,maxraw=0,mincal=0,maxcal=0;
+
+    QSqlQuery query;
+    query.prepare("select minraw,maxraw,mincal,maxcal from FIA where sno=1");
+    query.exec();
+    while(query.next())
+    {
+        minraw=query.value(0).toInt();
+        maxraw=query.value(1).toInt();
+        mincal=query.value(2).toInt();
+        maxcal=query.value(3).toInt();
+
+    }
+    QString min_raw=QString::number(minraw);
+    QString max_raw=QString::number(maxraw);
+    QString min_cal=QString::number(mincal);
+    QString max_cal=QString::number(maxcal);
+
+    ui->lineEdit_2->setText(min_raw);
+    ui->lineEdit_11->setText(max_raw);
+    ui->lineEdit_12->setText(min_cal);
+    ui->lineEdit_13->setText(max_cal);
+}
+
+void MainWindow::on_pushButton_20_clicked()
+{
+    ui->stackedWidget->setCurrentIndex(2);
+    ui->label_17->setText("Min Raw data");
+    opt=8;
+    int intensity=0;
+    QSqlQuery query;
+    query.prepare("select minraw from FIA where sno=1");
+    query.exec();
+    while(query.next())
+    {
+        intensity=query.value(0).toInt();
+    }
+    QString ity=QString::number(intensity);
+    ui->lineEdit_9->setText(ity);
+}
+
+void MainWindow::on_pushButton_28_clicked()
+{
+    ui->stackedWidget->setCurrentIndex(2);
+    ui->label_17->setText("Max Raw data");
+    opt=9;
+    int intensity=0;
+    QSqlQuery query;
+    query.prepare("select maxraw from FIA where sno=1");
+    query.exec();
+    while(query.next())
+    {
+        intensity=query.value(0).toInt();
+    }
+    QString ity=QString::number(intensity);
+    ui->lineEdit_9->setText(ity);
+}
+
+void MainWindow::on_pushButton_29_clicked()
+{
+    ui->stackedWidget->setCurrentIndex(2);
+    ui->label_17->setText("Min Cal. data");
+    opt=10;
+    int intensity=0;
+    QSqlQuery query;
+    query.prepare("select mincal from FIA where sno=1");
+    query.exec();
+    while(query.next())
+    {
+        intensity=query.value(0).toInt();
+    }
+    QString ity=QString::number(intensity);
+    ui->lineEdit_9->setText(ity);
+}
+
+void MainWindow::on_pushButton_30_clicked()
+{
+    ui->stackedWidget->setCurrentIndex(2);
+    ui->label_17->setText("Max Cal. data");
+    opt=11;
+    int intensity=0;
+    QSqlQuery query;
+    query.prepare("select maxcal from FIA where sno=1");
+    query.exec();
+    while(query.next())
+    {
+        intensity=query.value(0).toInt();
+    }
+    QString ity=QString::number(intensity);
+    ui->lineEdit_9->setText(ity);
+}
+
+void MainWindow::on_toolButton_5_clicked()
+{
+    setWindowState(Qt::WindowMinimized);
 }
