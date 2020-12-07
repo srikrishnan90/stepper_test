@@ -229,6 +229,21 @@ f.setup (samplingrate, cutoff_frequency);
             dat[len]=query.value(1).toInt();
             len++;
         }
+        if(conc[0]!=conc[1])
+        {
+            int count=0;
+            for(int i=0;i<len;i++)
+            {
+                if(conc[i]==0)
+                    count++;
+            }
+            len=len-count+1;
+        }
+        else
+        {
+         len=0;
+        }
+        qDebug()<<"count = "<<len;
     makePlot();
 
 }
@@ -287,7 +302,6 @@ void MainWindow::makePlot()
           temp2=y1[i];
           pos2=i;
       }
-
     }
     qDebug()<<temp1<<temp2;
     qDebug()<<pos1<<pos2;
@@ -696,10 +710,43 @@ void MainWindow::on_pushButton_17_clicked()
             query.prepare("update FIA set mincal=:val where sno=1");
         else if(opt==11)
             query.prepare("update FIA set maxcal=:val where sno=1");
+        else if(opt==12)
+            query.prepare("update FIA set conc=:val where sno=1");
+        else if(opt==13)
+            query.prepare("update FIA set conc=:val where sno=2");
+        else if(opt==14)
+            query.prepare("update FIA set conc=:val where sno=3");
+        else if(opt==15)
+            query.prepare("update FIA set conc=:val where sno=4");
+        else if(opt==16)
+            query.prepare("update FIA set conc=:val where sno=5");
+        else if(opt==17)
+            query.prepare("update FIA set conc=:val where sno=6");
+        else if(opt==18)
+            query.prepare("update FIA set conc=:val where sno=7");
+        else if(opt==19)
+            query.prepare("update FIA set conc=:val where sno=8");
+        else if(opt==20)
+            query.prepare("update FIA set data=:val where sno=1");
+        else if(opt==21)
+            query.prepare("update FIA set data=:val where sno=2");
+        else if(opt==22)
+            query.prepare("update FIA set data=:val where sno=3");
+        else if(opt==23)
+            query.prepare("update FIA set data=:val where sno=4");
+        else if(opt==24)
+            query.prepare("update FIA set data=:val where sno=5");
+        else if(opt==25)
+            query.prepare("update FIA set data=:val where sno=6");
+        else if(opt==26)
+            query.prepare("update FIA set data=:val where sno=7");
+        else if(opt==27)
+            query.prepare("update FIA set data=:val where sno=8");
+
 
         query.bindValue(":val",val);
         query.exec();
-        if(opt==8||opt==9||opt==10||opt==11)
+        if(8<=opt && opt<=27)
         {
             on_toolButton_4_clicked();
         }
@@ -741,6 +788,52 @@ void MainWindow::on_toolButton_4_clicked()
     ui->lineEdit_11->setText(max_raw);
     ui->lineEdit_12->setText(min_cal);
     ui->lineEdit_13->setText(max_cal);
+
+    query.prepare("select conc, data from FIA");
+    query.exec();
+    len=0;
+    while(query.next())
+    {
+        conc[len]=query.value(0).toInt();
+        dat[len]=query.value(1).toInt();
+        len++;
+    }
+
+    QString conc1=QString::number(conc[0]);
+    QString conc2=QString::number(conc[1]);
+    QString conc3=QString::number(conc[2]);
+    QString conc4=QString::number(conc[3]);
+    QString conc5=QString::number(conc[4]);
+    QString conc6=QString::number(conc[5]);
+    QString conc7=QString::number(conc[6]);
+    QString conc8=QString::number(conc[7]);
+
+    QString dat1=QString::number(dat[0]);
+    QString dat2=QString::number(dat[1]);
+    QString dat3=QString::number(dat[2]);
+    QString dat4=QString::number(dat[3]);
+    QString dat5=QString::number(dat[4]);
+    QString dat6=QString::number(dat[5]);
+    QString dat7=QString::number(dat[6]);
+    QString dat8=QString::number(dat[7]);
+
+    ui->lineEdit_10->setText(conc1);
+    ui->lineEdit_15->setText(conc2);
+    ui->lineEdit_17->setText(conc3);
+    ui->lineEdit_19->setText(conc4);
+    ui->lineEdit_21->setText(conc5);
+    ui->lineEdit_23->setText(conc6);
+    ui->lineEdit_25->setText(conc7);
+    ui->lineEdit_27->setText(conc8);
+
+    ui->lineEdit_14->setText(dat1);
+    ui->lineEdit_16->setText(dat2);
+    ui->lineEdit_18->setText(dat3);
+    ui->lineEdit_20->setText(dat4);
+    ui->lineEdit_22->setText(dat5);
+    ui->lineEdit_24->setText(dat6);
+    ui->lineEdit_26->setText(dat7);
+    ui->lineEdit_28->setText(dat8);
 }
 
 void MainWindow::on_pushButton_20_clicked()
@@ -814,4 +907,281 @@ void MainWindow::on_pushButton_30_clicked()
 void MainWindow::on_toolButton_5_clicked()
 {
     setWindowState(Qt::WindowMinimized);
+}
+
+void MainWindow::on_pushButton_27_clicked()
+{
+    ui->stackedWidget->setCurrentIndex(2);
+    ui->label_17->setText("Conc - 1");
+    opt=12;
+    int intensity=0;
+    QSqlQuery query;
+    query.prepare("select conc from FIA where sno=1");
+    query.exec();
+    while(query.next())
+    {
+        intensity=query.value(0).toInt();
+    }
+    QString ity=QString::number(intensity);
+    ui->lineEdit_9->setText(ity);
+}
+
+void MainWindow::on_pushButton_32_clicked()
+{
+    ui->stackedWidget->setCurrentIndex(2);
+    ui->label_17->setText("Conc - 2");
+    opt=13;
+    int intensity=0;
+    QSqlQuery query;
+    query.prepare("select conc from FIA where sno=2");
+    query.exec();
+    while(query.next())
+    {
+        intensity=query.value(0).toInt();
+    }
+    QString ity=QString::number(intensity);
+    ui->lineEdit_9->setText(ity);
+}
+
+void MainWindow::on_pushButton_34_clicked()
+{
+    ui->stackedWidget->setCurrentIndex(2);
+    ui->label_17->setText("Conc - 3");
+    opt=14;
+    int intensity=0;
+    QSqlQuery query;
+    query.prepare("select conc from FIA where sno=3");
+    query.exec();
+    while(query.next())
+    {
+        intensity=query.value(0).toInt();
+    }
+    QString ity=QString::number(intensity);
+    ui->lineEdit_9->setText(ity);
+}
+
+void MainWindow::on_pushButton_36_clicked()
+{
+    ui->stackedWidget->setCurrentIndex(2);
+    ui->label_17->setText("Conc - 4");
+    opt=15;
+    int intensity=0;
+    QSqlQuery query;
+    query.prepare("select conc from FIA where sno=4");
+    query.exec();
+    while(query.next())
+    {
+        intensity=query.value(0).toInt();
+    }
+    QString ity=QString::number(intensity);
+    ui->lineEdit_9->setText(ity);
+}
+
+void MainWindow::on_pushButton_38_clicked()
+{
+    ui->stackedWidget->setCurrentIndex(2);
+    ui->label_17->setText("Conc - 5");
+    opt=16;
+    int intensity=0;
+    QSqlQuery query;
+    query.prepare("select conc from FIA where sno=5");
+    query.exec();
+    while(query.next())
+    {
+        intensity=query.value(0).toInt();
+    }
+    QString ity=QString::number(intensity);
+    ui->lineEdit_9->setText(ity);
+}
+
+void MainWindow::on_pushButton_40_clicked()
+{
+    ui->stackedWidget->setCurrentIndex(2);
+    ui->label_17->setText("Conc - 6");
+    opt=17;
+    int intensity=0;
+    QSqlQuery query;
+    query.prepare("select conc from FIA where sno=6");
+    query.exec();
+    while(query.next())
+    {
+        intensity=query.value(0).toInt();
+    }
+    QString ity=QString::number(intensity);
+    ui->lineEdit_9->setText(ity);
+}
+
+void MainWindow::on_pushButton_43_clicked()
+{
+    ui->stackedWidget->setCurrentIndex(2);
+    ui->label_17->setText("Conc - 7");
+    opt=18;
+    int intensity=0;
+    QSqlQuery query;
+    query.prepare("select conc from FIA where sno=7");
+    query.exec();
+    while(query.next())
+    {
+        intensity=query.value(0).toInt();
+    }
+    QString ity=QString::number(intensity);
+    ui->lineEdit_9->setText(ity);
+}
+
+void MainWindow::on_pushButton_45_clicked()
+{
+    ui->stackedWidget->setCurrentIndex(2);
+    ui->label_17->setText("Conc - 8");
+    opt=19;
+    int intensity=0;
+    QSqlQuery query;
+    query.prepare("select conc from FIA where sno=8");
+    query.exec();
+    while(query.next())
+    {
+        intensity=query.value(0).toInt();
+    }
+    QString ity=QString::number(intensity);
+    ui->lineEdit_9->setText(ity);
+}
+
+void MainWindow::on_pushButton_31_clicked()
+{
+    ui->stackedWidget->setCurrentIndex(2);
+    ui->label_17->setText("Raw Data - 1");
+    opt=20;
+    int intensity=0;
+    QSqlQuery query;
+    query.prepare("select data from FIA where sno=1");
+    query.exec();
+    while(query.next())
+    {
+        intensity=query.value(0).toInt();
+    }
+    QString ity=QString::number(intensity);
+    ui->lineEdit_9->setText(ity);
+}
+
+void MainWindow::on_pushButton_33_clicked()
+{
+    ui->stackedWidget->setCurrentIndex(2);
+    ui->label_17->setText("Raw Data - 2");
+    opt=21;
+    int intensity=0;
+    QSqlQuery query;
+    query.prepare("select data from FIA where sno=2");
+    query.exec();
+    while(query.next())
+    {
+        intensity=query.value(0).toInt();
+    }
+    QString ity=QString::number(intensity);
+    ui->lineEdit_9->setText(ity);
+}
+
+void MainWindow::on_pushButton_35_clicked()
+{
+    ui->stackedWidget->setCurrentIndex(2);
+    ui->label_17->setText("Raw Data - 3");
+    opt=22;
+    int intensity=0;
+    QSqlQuery query;
+    query.prepare("select data from FIA where sno=3");
+    query.exec();
+    while(query.next())
+    {
+        intensity=query.value(0).toInt();
+    }
+    QString ity=QString::number(intensity);
+    ui->lineEdit_9->setText(ity);
+}
+
+void MainWindow::on_pushButton_37_clicked()
+{
+
+    ui->stackedWidget->setCurrentIndex(2);
+    ui->label_17->setText("Raw Data - 4");
+    opt=23;
+    int intensity=0;
+    QSqlQuery query;
+    query.prepare("select data from FIA where sno=4");
+    query.exec();
+    while(query.next())
+    {
+        intensity=query.value(0).toInt();
+    }
+    QString ity=QString::number(intensity);
+    ui->lineEdit_9->setText(ity);
+}
+
+void MainWindow::on_pushButton_39_clicked()
+{
+
+    ui->stackedWidget->setCurrentIndex(2);
+    ui->label_17->setText("Raw Data - 5");
+    opt=24;
+    int intensity=0;
+    QSqlQuery query;
+    query.prepare("select data from FIA where sno=5");
+    query.exec();
+    while(query.next())
+    {
+        intensity=query.value(0).toInt();
+    }
+    QString ity=QString::number(intensity);
+    ui->lineEdit_9->setText(ity);
+}
+
+void MainWindow::on_pushButton_41_clicked()
+{
+
+    ui->stackedWidget->setCurrentIndex(2);
+    ui->label_17->setText("Raw Data - 6");
+    opt=25;
+    int intensity=0;
+    QSqlQuery query;
+    query.prepare("select data from FIA where sno=6");
+    query.exec();
+    while(query.next())
+    {
+        intensity=query.value(0).toInt();
+    }
+    QString ity=QString::number(intensity);
+    ui->lineEdit_9->setText(ity);
+}
+
+void MainWindow::on_pushButton_42_clicked()
+{
+
+    ui->stackedWidget->setCurrentIndex(2);
+    ui->label_17->setText("Raw Data - 7");
+    opt=26;
+    int intensity=0;
+    QSqlQuery query;
+    query.prepare("select data from FIA where sno=7");
+    query.exec();
+    while(query.next())
+    {
+        intensity=query.value(0).toInt();
+    }
+    QString ity=QString::number(intensity);
+    ui->lineEdit_9->setText(ity);
+}
+
+void MainWindow::on_pushButton_44_clicked()
+{
+
+    ui->stackedWidget->setCurrentIndex(2);
+    ui->label_17->setText("Raw Data - 8");
+    opt=27;
+    int intensity=0;
+    QSqlQuery query;
+    query.prepare("select data from FIA where sno=8");
+    query.exec();
+    while(query.next())
+    {
+        intensity=query.value(0).toInt();
+    }
+    QString ity=QString::number(intensity);
+    ui->lineEdit_9->setText(ity);
 }
