@@ -147,10 +147,10 @@ void MainWindow::on_pushButton_3_clicked()
 
     //reading
     int intensity=0, win_start=0,win_end=0;
-    unsigned long reading_speed=0;
+    unsigned long reading_speed=0, homing_speed=0,speed=0;
     double samplingrate=0,cutoff_frequency=0;
     QSqlQuery query;
-    query.prepare("select intensity, samprate, cutoff,readspeed,startregion,endregion from FIA where sno=1");
+    query.prepare("select intensity, samprate, cutoff,readspeed,startregion,endregion, homespeed from FIA where sno=1");
     query.exec();
     while(query.next())
     {
@@ -160,6 +160,7 @@ void MainWindow::on_pushButton_3_clicked()
         reading_speed=query.value(3).toUInt();
         win_start=query.value(4).toInt();
         win_end=query.value(5).toInt();
+        homing_speed=query.value(6).toUInt();
     }
     on_pushButton_clicked();
 QThread::sleep(1);
@@ -176,19 +177,21 @@ f.setup (samplingrate, cutoff_frequency);
          if(i>win_start && i<win_end)
          {
              pwmWrite (LED, intensity);
+             speed=reading_speed;
          }
          else
          {
              pwmWrite (LED, 0);
+             speed=homing_speed;
          }
          digitalWrite(steps, HIGH);
-         QThread::usleep(reading_speed);
+         QThread::usleep(speed);
          digitalWrite(steps, LOW);
-         QThread::usleep(reading_speed);
+         QThread::usleep(speed);
 
          read[i]=readadc();
          filtdata[i]=f.filter(read[i]);
-         //qDebug()<<read[i];
+         qDebug()<<filtdata[i];
     }
     digitalWrite(en,HIGH);
     pwmWrite (LED, 0);
@@ -212,7 +215,7 @@ f.setup (samplingrate, cutoff_frequency);
             filtdata[i]=(slope*(filtdata[i]+intercept));
             if(filtdata[i]<0)
                 filtdata[i]=0;
-            qDebug()<<filtdata[i];
+            //qDebug()<<filtdata[i];
         }
     }
 
