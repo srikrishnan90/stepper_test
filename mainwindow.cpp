@@ -338,40 +338,7 @@ void MainWindow::makePlot()
       tr2=tr2/20;
       tr=(tr1+tr2)/2;
 
-//ADX
-//      for(int i=pos1-10;i<pos1+10;i++)
-//      {
-//          test+=y1[i];
-//      }
-//     test=test/20;
-//     for(int i=pos1-220;i<pos1-200;i++)
-//     {
-//         tr1+=y1[i];
-//     }
-//      tr1=tr1/20;
-//      for(int i=pos1+200;i<pos1+220;i++)
-//      {
-//          tr2+=y1[i];
-//      }
-//       tr2=tr2/20;
-//       tr=(tr1+tr2)/2;
-//      for(int i=pos2-10;i<pos2+10;i++)
-//      {
-//          control+=y1[i];
-//      }
-//      control=control/20;
 
-//      for(int i=pos2-220;i<pos2-200;i++)
-//      {
-//          cr1+=y1[i];
-//      }
-//       cr1=cr1/20;
-//       for(int i=pos2+200;i<pos2+220;i++)
-//       {
-//           cr2+=y1[i];
-//       }
-//        cr2=cr2/20;
-//        cr=(cr1+cr2)/2;
 
       if(ui->radioButton_6->isChecked())
       {
