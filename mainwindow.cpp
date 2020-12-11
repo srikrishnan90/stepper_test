@@ -21,6 +21,7 @@ static double filtdata[20000];
 static int conc[100];
 static int dat[100];
 static int len=0;
+static double factr=0;
 
 static int opt=0;
 
@@ -212,11 +213,12 @@ f.setup (samplingrate, cutoff_frequency);
         double intercept=y1-(slope*x1);
         for (int i=0;i<12000;i++)
         {
-            filtdata[i]=(slope*(filtdata[i]+intercept));
+            filtdata[i]=(slope*filtdata[i])+intercept;
             if(filtdata[i]<0)
                 filtdata[i]=0;
-            //qDebug()<<filtdata[i];
         }
+        //qDebug()<<"pass";
+        //qDebug()<<slope<<" "<<intercept;
     }
 
 
@@ -243,7 +245,15 @@ f.setup (samplingrate, cutoff_frequency);
         {
          len=0;
         }
-        qDebug()<<"count = "<<len;
+        //qDebug()<<"count = "<<len;
+
+        query.prepare("select factor from FIA where sno=1");
+        query.exec();
+        while(query.next())
+        {
+            factr=query.value(0).toDouble();
+
+        }
     makePlot();
 
 }
@@ -279,6 +289,7 @@ void MainWindow::makePlot()
         y[i]=read[i];
         y1[i]=filtdata[i];
     }
+    //qDebug()<<"pass-1";
     double temp1=0;
     int pos1=0;
     for (int i=win_start;i<(win_start+(win_end-win_start)/2)-50;i++)
@@ -291,6 +302,8 @@ void MainWindow::makePlot()
       }
 
     }
+    if(pos1==0)
+        pos1=win_end-win_start;
 
     double temp2=0;
     int pos2=0;
@@ -303,8 +316,10 @@ void MainWindow::makePlot()
           pos2=i;
       }
     }
-    qDebug()<<temp1<<temp2;
-    qDebug()<<pos1<<pos2;
+    if(pos2==0)
+        pos2=win_end-win_start;
+    //qDebug()<<temp1<<temp2;
+    //qDebug()<<pos1<<pos2;
     QVector<double> xv1(2);
     QVector<double> yv1(2);
     QVector<double> xv2(2);
@@ -315,7 +330,7 @@ void MainWindow::makePlot()
     yv1[1]=temp1;
     yv2[1]=temp2;
 
-    int control=0, test=0, cr=0,cr1=0,cr2=0,tr=0,tr1=0,tr2=0;
+    double control=0, test=0, cr=0,cr1=0,cr2=0,tr=0,tr1=0,tr2=0;
 
 //Biotime
     for(int i=pos1-10;i<pos1+10;i++)
@@ -356,7 +371,7 @@ void MainWindow::makePlot()
 
       if(ui->radioButton_6->isChecked())
       {
-          qDebug()<<control<<cr<<test<<tr;
+         // qDebug()<<control<<cr<<test<<tr;
           control=control-cr;
           if(control<0)
               control=0;
@@ -365,7 +380,7 @@ void MainWindow::makePlot()
               test=0;
       }
 
-    int max=0;
+    double max=0;
     if(control>test)
         max=control;
     else max=test;
@@ -385,7 +400,7 @@ void MainWindow::makePlot()
             break;
         }
     }
-    qDebug()<<"POINT="<<point;
+   // qDebug()<<"POINT="<<point;
     double result=0;
     if(point==0)
     {
@@ -410,13 +425,17 @@ void MainWindow::makePlot()
         y2=conc[point];
         double slope=(y2-y1)/(x2-x1);
         double intercept=y1-(slope*x1);
-        result=slope*(test+intercept);
+        result=(slope*test)+intercept;
         ui->label_24->setText(QString::number(result, 'f', 2));
     }
+    double ctresult=0;
+    ctresult=(control/test)*factr;
+    ui->label_68->setText(QString::number(ctresult, 'f', 2));
 
-
-    ui->label->setNum(test);
-     ui->label_2->setNum(control);
+   // ui->label->setNum(test);
+     //ui->label_2->setNum(control);
+    ui->label->setText(QString::number(test, 'f', 0));
+    ui->label_2->setText(QString::number(control, 'f', 0));
     // create graph and assign data to it:
     ui->customPlot->addGraph();
     ui->customPlot->graph(0)->setData(x,y);
@@ -742,11 +761,13 @@ void MainWindow::on_pushButton_17_clicked()
             query.prepare("update FIA set data=:val where sno=7");
         else if(opt==27)
             query.prepare("update FIA set data=:val where sno=8");
+        else if(opt==28)
+            query.prepare("update FIA set factor=:val where sno=1");
 
 
         query.bindValue(":val",val);
         query.exec();
-        if(8<=opt && opt<=27)
+        if(8<=opt && opt<=28)
         {
             on_toolButton_4_clicked();
         }
@@ -766,10 +787,10 @@ void MainWindow::on_toolButton_4_clicked()
     ui->stackedWidget->setCurrentIndex(3);
     ui->toolButton->setChecked(false);
     ui->toolButton_2->setChecked(false);
-    int minraw=0,maxraw=0,mincal=0,maxcal=0;
+    int minraw=0,maxraw=0,mincal=0,maxcal=0, factor=0;
 
     QSqlQuery query;
-    query.prepare("select minraw,maxraw,mincal,maxcal from FIA where sno=1");
+    query.prepare("select minraw,maxraw,mincal,maxcal,factor from FIA where sno=1");
     query.exec();
     while(query.next())
     {
@@ -777,17 +798,20 @@ void MainWindow::on_toolButton_4_clicked()
         maxraw=query.value(1).toInt();
         mincal=query.value(2).toInt();
         maxcal=query.value(3).toInt();
+        factor=query.value(4).toInt();
 
     }
     QString min_raw=QString::number(minraw);
     QString max_raw=QString::number(maxraw);
     QString min_cal=QString::number(mincal);
     QString max_cal=QString::number(maxcal);
+    QString fact=QString::number(factor);
 
     ui->lineEdit_2->setText(min_raw);
     ui->lineEdit_11->setText(max_raw);
     ui->lineEdit_12->setText(min_cal);
     ui->lineEdit_13->setText(max_cal);
+    ui->lineEdit_29->setText(fact);
 
     query.prepare("select conc, data from FIA");
     query.exec();
@@ -1177,6 +1201,23 @@ void MainWindow::on_pushButton_44_clicked()
     int intensity=0;
     QSqlQuery query;
     query.prepare("select data from FIA where sno=8");
+    query.exec();
+    while(query.next())
+    {
+        intensity=query.value(0).toInt();
+    }
+    QString ity=QString::number(intensity);
+    ui->lineEdit_9->setText(ity);
+}
+
+void MainWindow::on_pushButton_46_clicked()
+{
+    ui->stackedWidget->setCurrentIndex(2);
+    ui->label_17->setText("C/T Factor");
+    opt=28;
+    int intensity=0;
+    QSqlQuery query;
+    query.prepare("select factor from FIA where sno=1");
     query.exec();
     while(query.next())
     {

@@ -30,7 +30,7 @@
      <string notr="true">background:rgb(17, 46, 88)</string>
     </property>
     <property name="currentIndex">
-     <number>3</number>
+     <number>0</number>
     </property>
     <widget class="QWidget" name="page">
      <widget class="QCustomPlot" name="customPlot" native="true">
@@ -49,7 +49,7 @@
      <widget class="QLabel" name="label_3">
       <property name="geometry">
        <rect>
-        <x>340</x>
+        <x>250</x>
         <y>280</y>
         <width>64</width>
         <height>17</height>
@@ -74,7 +74,7 @@ color:rgb(255, 255, 255);</string>
      <widget class="QLabel" name="label_4">
       <property name="geometry">
        <rect>
-        <x>90</x>
+        <x>50</x>
         <y>280</y>
         <width>64</width>
         <height>17</height>
@@ -99,7 +99,7 @@ color:rgb(255, 255, 255);</string>
      <widget class="QLabel" name="label">
       <property name="geometry">
        <rect>
-        <x>400</x>
+        <x>310</x>
         <y>280</y>
         <width>64</width>
         <height>17</height>
@@ -124,7 +124,7 @@ color:rgb(255, 255, 255);</string>
      <widget class="QLabel" name="label_2">
       <property name="geometry">
        <rect>
-        <x>170</x>
+        <x>130</x>
         <y>280</y>
         <width>64</width>
         <height>17</height>
@@ -244,7 +244,7 @@ color:rgb(255, 255, 255);</string>
      <widget class="QLabel" name="label_23">
       <property name="geometry">
        <rect>
-        <x>580</x>
+        <x>610</x>
         <y>280</y>
         <width>64</width>
         <height>17</height>
@@ -269,7 +269,57 @@ color:rgb(255, 255, 255);</string>
      <widget class="QLabel" name="label_24">
       <property name="geometry">
        <rect>
-        <x>660</x>
+        <x>690</x>
+        <y>280</y>
+        <width>64</width>
+        <height>17</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <family>PibotoLt</family>
+        <pointsize>14</pointsize>
+        <weight>75</weight>
+        <bold>true</bold>
+       </font>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">background:rgb(17, 46, 88);
+color:rgb(255, 255, 255);</string>
+      </property>
+      <property name="text">
+       <string/>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_67">
+      <property name="geometry">
+       <rect>
+        <x>430</x>
+        <y>280</y>
+        <width>64</width>
+        <height>17</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <family>PibotoLt</family>
+        <pointsize>14</pointsize>
+        <weight>75</weight>
+        <bold>true</bold>
+       </font>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">background:rgb(17, 46, 88);
+color:rgb(255, 255, 255);</string>
+      </property>
+      <property name="text">
+       <string>C/T</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_68">
+      <property name="geometry">
+       <rect>
+        <x>490</x>
         <y>280</y>
         <width>64</width>
         <height>17</height>
@@ -1304,7 +1354,7 @@ color:rgb(255, 255, 255);</string>
        <rect>
         <x>30</x>
         <y>20</y>
-        <width>421</width>
+        <width>261</width>
         <height>90</height>
        </rect>
       </property>
@@ -1323,7 +1373,7 @@ border:                 2px solid white;}</string>
       <widget class="QRadioButton" name="radioButton">
        <property name="geometry">
         <rect>
-         <x>20</x>
+         <x>15</x>
          <y>10</y>
          <width>191</width>
          <height>31</height>
@@ -1363,9 +1413,9 @@ QRadioButton::indicator:unchecked {
       <widget class="QRadioButton" name="radioButton_2">
        <property name="geometry">
         <rect>
-         <x>20</x>
+         <x>15</x>
          <y>50</y>
-         <width>251</width>
+         <width>241</width>
          <height>31</height>
         </rect>
        </property>
@@ -1428,7 +1478,7 @@ border:                 2px solid white;}</string>
       <widget class="QRadioButton" name="radioButton_5">
        <property name="geometry">
         <rect>
-         <x>20</x>
+         <x>15</x>
          <y>10</y>
          <width>241</width>
          <height>31</height>
@@ -1468,7 +1518,7 @@ QRadioButton::indicator:unchecked {
       <widget class="QRadioButton" name="radioButton_6">
        <property name="geometry">
         <rect>
-         <x>20</x>
+         <x>15</x>
          <y>50</y>
          <width>301</width>
          <height>31</height>
@@ -2232,6 +2282,80 @@ color:rgb(255, 255, 255);</string>
       <zorder>label_30</zorder>
       <zorder>label_31</zorder>
       <zorder>label_32</zorder>
+     </widget>
+     <widget class="QFrame" name="frame_11">
+      <property name="geometry">
+       <rect>
+        <x>300</x>
+        <y>20</y>
+        <width>141</width>
+        <height>91</height>
+       </rect>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">QFrame {
+background:rgb(17, 46, 88);
+color:rgb(255, 255, 255);
+border:                 2px solid white;}</string>
+      </property>
+      <property name="frameShape">
+       <enum>QFrame::StyledPanel</enum>
+      </property>
+      <property name="frameShadow">
+       <enum>QFrame::Raised</enum>
+      </property>
+      <widget class="QLineEdit" name="lineEdit_29">
+       <property name="geometry">
+        <rect>
+         <x>30</x>
+         <y>40</y>
+         <width>100</width>
+         <height>40</height>
+        </rect>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">background:rgb(17, 46, 88);
+color:rgb(255, 255, 255);</string>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="pushButton_46">
+       <property name="geometry">
+        <rect>
+         <x>20</x>
+         <y>40</y>
+         <width>100</width>
+         <height>40</height>
+        </rect>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">background:qlineargradient(spread:pad, x1:0, y1:0, x2:1, y2:0, stop:0 rgba(0, 0, 0, 0), stop:1 rgba(0,0,0,0))</string>
+       </property>
+       <property name="text">
+        <string/>
+       </property>
+      </widget>
+      <widget class="QLabel" name="label_33">
+       <property name="geometry">
+        <rect>
+         <x>0</x>
+         <y>0</y>
+         <width>141</width>
+         <height>31</height>
+        </rect>
+       </property>
+       <property name="font">
+        <font>
+         <pointsize>12</pointsize>
+        </font>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">background:rgb(17, 46, 88);
+color:rgb(255, 255, 255);</string>
+       </property>
+       <property name="text">
+        <string>Factor</string>
+       </property>
+      </widget>
      </widget>
     </widget>
    </widget>
