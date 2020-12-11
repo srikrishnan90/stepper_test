@@ -240,6 +240,31 @@ color:rgb(255, 255, 255);</string>
         <string>Read</string>
        </property>
       </widget>
+      <widget class="QLabel" name="label_34">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>30</y>
+         <width>64</width>
+         <height>17</height>
+        </rect>
+       </property>
+       <property name="font">
+        <font>
+         <family>PibotoLt</family>
+         <pointsize>14</pointsize>
+         <weight>75</weight>
+         <bold>true</bold>
+        </font>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">background:rgb(17, 46, 88);
+color:rgb(255, 255, 255);</string>
+       </property>
+       <property name="text">
+        <string>V.001</string>
+       </property>
+      </widget>
      </widget>
      <widget class="QLabel" name="label_23">
       <property name="geometry">
