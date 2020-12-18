@@ -49,7 +49,7 @@ MainWindow::MainWindow(QWidget *parent) :
      pwmWrite (LED, 0);
      ui->stackedWidget->setCurrentIndex(0);
      QSqlDatabase sqdb = QSqlDatabase::addDatabase("QSQLITE");
-     sqdb.setDatabaseName("/home/pi/git/stepper_test/FIA.db");
+     sqdb.setDatabaseName("/home/pi/ADXCTKFIA/FIA.db");
      if(!sqdb.open())
          {
              qDebug() << "Can't Connect to DB !";
@@ -429,8 +429,11 @@ void MainWindow::makePlot()
         ui->label_24->setText(QString::number(result, 'f', 2));
     }
     double ctresult=0;
+    double tcresult=0;
     ctresult=(control/test)*factr;
+    tcresult=(test/control)*factr;
     ui->label_68->setText(QString::number(ctresult, 'f', 2));
+    ui->label_69->setText(QString::number(tcresult, 'f', 2));
 
    // ui->label->setNum(test);
      //ui->label_2->setNum(control);
@@ -780,6 +783,11 @@ void MainWindow::on_pushButton_17_clicked()
 void MainWindow::on_toolButton_3_clicked()
 {
     qApp->exit();
+//    QProcess process;
+//    process.start("git clone https://github.com/srikadx/ADXCTKFIA.git");
+//    process.waitForFinished();
+//    process.start("sudo chmod +x /home/pi/ADXCTKFIA/./steppertest");
+//    process.waitForFinished();
 }
 
 void MainWindow::on_toolButton_4_clicked()
