@@ -271,14 +271,18 @@ int MainWindow::readadc()
 void MainWindow::makePlot()
 {
     // generate some data:
-    int win_start=0,win_end=0;
+    int win_start=0,win_end=0,control_peak=0,test_peak=0,ct_offset=0,base_offset=0;
     QSqlQuery query;
-    query.prepare("select startregion, endregion from FIA where sno=1");
+    query.prepare("select startregion, endregion, control,test,ctoffset,baseoffset from FIA where sno=1");
     query.exec();
     while(query.next())
     {
         win_start=query.value(0).toInt();
         win_end=query.value(1).toInt();
+        control_peak=query.value(2).toInt();
+        test_peak=query.value(3).toInt();
+        ct_offset=query.value(4).toInt();
+        base_offset=query.value(5).toInt();
     }
     QVector<double> x(20000), y(20000), y1(20000);// initialize with entries 0..100
     for (int i=0; i<12000; i++)
@@ -292,7 +296,7 @@ void MainWindow::makePlot()
     //qDebug()<<"pass-1";
     double temp1=0;
     int pos1=0;
-    for (int i=win_start;i<(win_start+(win_end-win_start)/2)-50;i++)
+    for (int i=control_peak-ct_offset;i<=control_peak+ct_offset;i++)
     {
 
       if(temp1<y1[i])
@@ -303,11 +307,11 @@ void MainWindow::makePlot()
 
     }
     if(pos1==0)
-        pos1=win_end-win_start;
+        pos1=control_peak;
 
     double temp2=0;
     int pos2=0;
-    for (int i=(win_start+(win_end-win_start)/2)+50;i<win_end;i++)
+    for (int i=test_peak-ct_offset;i<=test_peak+ct_offset;i++)
     {
 
       if(temp2<y1[i])
@@ -317,18 +321,21 @@ void MainWindow::makePlot()
       }
     }
     if(pos2==0)
-        pos2=win_end-win_start;
+        pos2=test_peak;
     //qDebug()<<temp1<<temp2;
     //qDebug()<<pos1<<pos2;
     QVector<double> xv1(2);
     QVector<double> yv1(2);
     QVector<double> xv2(2);
     QVector<double> yv2(2);
+
     xv1[0]=xv1[1]=pos1;
     xv2[0]=xv2[1]=pos2;
     yv1[0]=yv2[0]=0;
     yv1[1]=temp1;
     yv2[1]=temp2;
+
+
 
     double control=0, test=0, cr=0,cr1=0,cr2=0,tr=0,tr1=0,tr2=0;
 
@@ -338,12 +345,12 @@ void MainWindow::makePlot()
         control+=y1[i];
     }
    control=control/20;
-   for(int i=pos1-220;i<pos1-200;i++)
+   for(int i=pos1-base_offset-10;i<pos1-base_offset+10;i++)
    {
        cr1+=y1[i];
    }
     cr1=cr1/20;
-    for(int i=pos1+200;i<pos1+220;i++)
+    for(int i=pos1+base_offset-10;i<pos1+base_offset+10;i++)
     {
         cr2+=y1[i];
     }
@@ -355,12 +362,12 @@ void MainWindow::makePlot()
     }
     test=test/20;
 
-    for(int i=pos2-220;i<pos2-200;i++)
+   for(int i=pos2-base_offset-10;i<pos2-base_offset+10;i++)
     {
         tr1+=y1[i];
     }
      tr1=tr1/20;
-     for(int i=pos2+200;i<pos2+220;i++)
+     for(int i=pos2+base_offset-10;i<pos2+base_offset+10;i++)
      {
          tr2+=y1[i];
      }
@@ -384,6 +391,40 @@ void MainWindow::makePlot()
     if(control>test)
         max=control;
     else max=test;
+
+    QVector<double> clx(2);
+    QVector<double> cly(2);
+    QVector<double> crx(2);
+    QVector<double> cry(2);
+    QVector<double> tlx(2);
+    QVector<double> tly(2);
+    QVector<double> tr_x(2);
+    QVector<double> tr_y(2);
+
+    clx[0]=clx[1]=control_peak-ct_offset;
+    crx[0]=crx[1]=control_peak+ct_offset;
+    cly[0]=cry[0]=0;
+    cly[1]=cry[1]=max+300;
+    tlx[0]=tlx[1]=test_peak-ct_offset;
+    tr_x[0]=tr_x[1]=test_peak+ct_offset;
+    tly[0]=tr_y[0]=0;
+    tly[1]=tr_y[1]=max+300;
+
+
+    QVector<double> cbx(2);
+    QVector<double> cby(2);
+    QVector<double> tbx(2);
+    QVector<double> tby(2);
+
+    cbx[0]=pos1-base_offset;
+    cby[0]=y1[pos1-base_offset];
+    cbx[1]=pos1+base_offset;
+    cby[1]=y1[pos1+base_offset];
+    tbx[0]=pos2-base_offset;
+    tby[0]=y1[pos2-base_offset];
+    tbx[1]=pos2+base_offset;
+    tby[1]=y1[pos2+base_offset];
+
 
     //Qantitative readout
     int point=0;
@@ -455,12 +496,39 @@ void MainWindow::makePlot()
     ui->customPlot->graph(3)->setPen(QPen(Qt::white,3));
     ui->customPlot->graph(3)->setData(xv2,yv2);
 
+    //Control Left vertical line
+    ui->customPlot->addGraph();
+    ui->customPlot->graph(4)->setPen(QPen(Qt::yellow,1,Qt::DashLine));
+    ui->customPlot->graph(4)->setData(clx,cly);
+    //Control Right vertical line
+    ui->customPlot->addGraph();
+    ui->customPlot->graph(5)->setPen(QPen(Qt::yellow,1,Qt::DashLine));
+    ui->customPlot->graph(5)->setData(crx,cry);
+    //Test Left vertical line
+    ui->customPlot->addGraph();
+    ui->customPlot->graph(6)->setPen(QPen(Qt::yellow,1,Qt::DashLine));
+    ui->customPlot->graph(6)->setData(tlx,tly);
+    //Test Right vertical line
+    ui->customPlot->addGraph();
+    ui->customPlot->graph(7)->setPen(QPen(Qt::yellow,1,Qt::DashLine));
+    ui->customPlot->graph(7)->setData(tr_x,tr_y);
+
+    //Control Base line
+    ui->customPlot->addGraph();
+    ui->customPlot->graph(8)->setPen(QPen(Qt::green,3));
+    ui->customPlot->graph(8)->setData(cbx,cby);
+    //Test Base line
+    ui->customPlot->addGraph();
+    ui->customPlot->graph(9)->setPen(QPen(Qt::green,3));
+    ui->customPlot->graph(9)->setData(tbx,tby);
+
+
     // give the axes some labels:
     ui->customPlot->xAxis->setLabel("x");
     ui->customPlot->yAxis->setLabel("y");
     // set axes ranges, so we see all data:
     ui->customPlot->xAxis->setRange(win_start, win_end);
-    ui->customPlot->yAxis->setRange(0, max+100);
+    ui->customPlot->yAxis->setRange(0, max+300);
     ui->customPlot->replot();
 
 }
@@ -514,10 +582,10 @@ void MainWindow::on_toolButton_2_clicked()
     ui->stackedWidget->setCurrentIndex(1);
     ui->toolButton->setChecked(false);
     ui->toolButton_4->setChecked(false);
-    int intensity=0,samprate=0,cutoff=0,homing_speed=0,reading_speed=0,win_start=0,win_end=0;
+    int intensity=0,samprate=0,cutoff=0,homing_speed=0,reading_speed=0,win_start=0,win_end=0,control_peak=0,test_peak=0,ct_offset=0,base_offset=0;
 
     QSqlQuery query;
-    query.prepare("select intensity, samprate, cutoff, homespeed,readspeed, startregion,endregion from FIA where sno=1");
+    query.prepare("select intensity, samprate, cutoff, homespeed,readspeed, startregion,endregion,control,test,ctoffset,baseoffset from FIA where sno=1");
     query.exec();
     while(query.next())
     {
@@ -528,6 +596,10 @@ void MainWindow::on_toolButton_2_clicked()
         reading_speed=query.value(4).toInt();
         win_start=query.value(5).toInt();
         win_end=query.value(6).toInt();
+        control_peak=query.value(7).toInt();
+        test_peak=query.value(8).toInt();
+        ct_offset=query.value(9).toInt();
+        base_offset=query.value(10).toInt();
     }
     QString ity=QString::number(intensity);
     QString srt=QString::number(samprate);
@@ -536,6 +608,10 @@ void MainWindow::on_toolButton_2_clicked()
     QString rds=QString::number(reading_speed);
     QString wis=QString::number(win_start);
     QString wie=QString::number(win_end);
+    QString ctrl=QString::number(control_peak);
+    QString tst=QString::number(test_peak);
+    QString ctofst=QString::number(ct_offset);
+    QString bsofst=QString::number(base_offset);
 
     ui->lineEdit->setText(ity);
     ui->lineEdit_3->setText(srt);
@@ -544,6 +620,10 @@ void MainWindow::on_toolButton_2_clicked()
     ui->lineEdit_6->setText(rds);
     ui->lineEdit_7->setText(wis);
     ui->lineEdit_8->setText(wie);
+    ui->lineEdit_30->setText(ctrl);
+    ui->lineEdit_31->setText(tst);
+    ui->lineEdit_33->setText(ctofst);
+    ui->lineEdit_34->setText(bsofst);
 
 }
 
@@ -766,6 +846,14 @@ void MainWindow::on_pushButton_17_clicked()
             query.prepare("update FIA set data=:val where sno=8");
         else if(opt==28)
             query.prepare("update FIA set factor=:val where sno=1");
+        else if(opt==29)
+            query.prepare("update FIA set control=:val where sno=1");
+        else if(opt==30)
+            query.prepare("update FIA set test=:val where sno=1");
+        else if(opt==31)
+            query.prepare("update FIA set ctoffset=:val where sno=1");
+        else if(opt==32)
+            query.prepare("update FIA set baseoffset=:val where sno=1");
 
 
         query.bindValue(":val",val);
@@ -1226,6 +1314,74 @@ void MainWindow::on_pushButton_46_clicked()
     int intensity=0;
     QSqlQuery query;
     query.prepare("select factor from FIA where sno=1");
+    query.exec();
+    while(query.next())
+    {
+        intensity=query.value(0).toInt();
+    }
+    QString ity=QString::number(intensity);
+    ui->lineEdit_9->setText(ity);
+}
+
+void MainWindow::on_pushButton_47_clicked()
+{
+    ui->stackedWidget->setCurrentIndex(2);
+    ui->label_17->setText("Control Line");
+    opt=29;
+    int intensity=0;
+    QSqlQuery query;
+    query.prepare("select control from FIA where sno=1");
+    query.exec();
+    while(query.next())
+    {
+        intensity=query.value(0).toInt();
+    }
+    QString ity=QString::number(intensity);
+    ui->lineEdit_9->setText(ity);
+}
+
+void MainWindow::on_pushButton_48_clicked()
+{
+    ui->stackedWidget->setCurrentIndex(2);
+    ui->label_17->setText("Test Line");
+    opt=30;
+    int intensity=0;
+    QSqlQuery query;
+    query.prepare("select test from FIA where sno=1");
+    query.exec();
+    while(query.next())
+    {
+        intensity=query.value(0).toInt();
+    }
+    QString ity=QString::number(intensity);
+    ui->lineEdit_9->setText(ity);
+}
+
+void MainWindow::on_pushButton_49_clicked()
+{
+    ui->stackedWidget->setCurrentIndex(2);
+    ui->label_17->setText("C&T Line offset");
+    opt=31;
+    int intensity=0;
+    QSqlQuery query;
+    query.prepare("select ctoffset from FIA where sno=1");
+    query.exec();
+    while(query.next())
+    {
+        intensity=query.value(0).toInt();
+    }
+    QString ity=QString::number(intensity);
+    ui->lineEdit_9->setText(ity);
+}
+
+void MainWindow::on_pushButton_51_clicked()
+{
+    ui->stackedWidget->setCurrentIndex(2);
+    ui->label_17->setText("Baseline offset");
+    opt=32;
+    int intensity=0;
+    QSqlQuery query;
+    query.prepare("select baseoffset from FIA where sno=1");
     query.exec();
     while(query.next())
     {
